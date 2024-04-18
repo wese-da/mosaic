@@ -80,7 +80,7 @@ public class IvimRsuApplication extends AbstractApplication<RoadSideUnitOperatin
 				.setGeoPosition(GeoPoint.latLon(52.612722, 13.548835, 0), 0))
 				.putAdvice(0, new Advice().setSpeedAdvice(30/3.6f)));
 //        content.addSegment(
-//				new Segment("speed advice")
+//				new Segment("speed advice 2")
 //				.setStartPosition(new SegmentPosition()
 //						.setEdgePosition("284243530_2879911873_1313885463", 0)
 //				.setGeoPosition(GeoPoint.latLon(52.627410, 13.563967, 0), 0))
@@ -89,6 +89,7 @@ public class IvimRsuApplication extends AbstractApplication<RoadSideUnitOperatin
 //				.setGeoPosition(GeoPoint.latLon(52.612722, 13.548835, 0), 0))
 //				.putAdvice(1, new Advice().setSpeedAdvice(30/3.6f)));
         final Ivim message = new Ivim(routing, content, 200);
+        getLog().infoSimTime(this, message.toString());
         getOs().getAdHocModule().sendV2xMessage(message);
     }
 }
