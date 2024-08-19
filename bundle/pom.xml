@@ -147,6 +147,12 @@
             <artifactId>weather-warning</artifactId>
             <version>${mosaic.version}</version>
         </dependency>
+		
+        <dependency>
+            <groupId>org.eclipse.mosaic.app.ts</groupId>
+            <artifactId>kosnet_applications</artifactId>
+            <version>${mosaic.version}</version>
+        </dependency>
 
 
         <!-- Dependencies -->
