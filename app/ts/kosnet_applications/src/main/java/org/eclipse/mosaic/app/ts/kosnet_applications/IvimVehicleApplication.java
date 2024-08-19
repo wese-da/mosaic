@@ -31,6 +31,7 @@ import org.eclipse.mosaic.lib.objects.v2x.etsi.Ivim;
 import org.eclipse.mosaic.lib.objects.v2x.etsi.ivim.Advice;
 import org.eclipse.mosaic.lib.objects.v2x.etsi.ivim.Segment;
 import org.eclipse.mosaic.lib.util.scheduling.Event;
+import org.eclipse.mosaic.rti.TIME;
 
 public class IvimVehicleApplication extends AbstractApplication<VehicleOperatingSystem> implements CommunicationApplication {
 	
@@ -63,7 +64,7 @@ public class IvimVehicleApplication extends AbstractApplication<VehicleOperating
 
 	@Override
 	public void processEvent(Event event) throws Exception {
-		
+		getOperatingSystem().resetSpeed();
 	}
 
 	@Override
@@ -107,8 +108,10 @@ public class IvimVehicleApplication extends AbstractApplication<VehicleOperating
 				getLog().infoSimTime(this, "Parsing advice.");
 				// okay here since we only have one advice
 				// TODO more generic solution
-				getOs().changeSpeedWithPleasantAcceleration(a.getSpeedAdvice());
-				getLog().infoSimTime(this, "Applying speed advice.");
+				getOs().changeSpeedWithInterval(a.getSpeedAdvice(), TIME.SECOND);
+				getLog().infoSimTime(this, String.format("Applying speed advice %.2f "
+						+ "(decelerating from %.2f)."
+						, a.getSpeedAdvice(), getOs().getVehicleData().getSpeed()));
 				getOperatingSystem().requestVehicleParametersUpdate()
 				.changeColor(Color.GREEN)
 				.apply();
