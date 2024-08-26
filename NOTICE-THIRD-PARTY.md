@@ -5,14 +5,6 @@ Maps Icons Collection
 * License: Creative Commons Attribution-Share Alike 3.0 Unported license (CC BY SA 3.0)
 * Project: https://mapicons.mapsmarker.com
 
-Apache Commons CLI (1.4)
-
- * License: Apache-2.0
- * Maven artifact: `commons-cli:commons-cli:1.4`
- * Project: http://commons.apache.org/proper/commons-cli/
- * Source: https://svn.apache.org/viewvc/commons/proper/cli/trunk/
-
-
 Apache Commons CLI (1.6.0)
 
  * License: Apache-2.0
@@ -37,36 +29,12 @@ Apache Commons IO (2.15.0)
  * Source: https://gitbox.apache.org/repos/asf?p=commons-io
 
 
-Apache Commons IO (2.6)
-
- * License: Apache-2.0
- * Maven artifact: `commons-io:commons-io:2.6`
- * Project: http://commons.apache.org/proper/commons-io/
- * Source: https://git-wip-us.apache.org/repos/asf?p=commons-io
-
-
-Apache Commons Lang (3.13.0)
-
- * License: Apache-2.0
- * Maven artifact: `org.apache.commons:commons-lang3:3.13.0`
- * Project: https://commons.apache.org/proper/commons-lang/
- * Source: https://gitbox.apache.org/repos/asf?p=commons-lang
-
-
 Apache Commons Lang (3.14.0)
 
  * License: Apache-2.0
  * Maven artifact: `org.apache.commons:commons-lang3:3.14.0`
  * Project: https://commons.apache.org/proper/commons-lang/
  * Source: https://gitbox.apache.org/repos/asf?p=commons-lang
-
-
-Apache Commons Logging (1.2)
-
- * License: Apache-2.0
- * Maven artifact: `commons-logging:commons-logging:1.2`
- * Project: http://commons.apache.org/proper/commons-logging/
- * Source: https://svn.apache.org/repos/asf/commons/proper/logging/trunk
 
 
 Apache Commons Logging (1.3.0)
@@ -123,22 +91,6 @@ FindBugs-jsr305 (3.0.2)
  * Maven artifact: `com.google.code.findbugs:jsr305:3.0.2`
  * Project: http://findbugs.sourceforge.net/
  * Source: https://code.google.com/p/jsr-305/
-
-
-GraphHopper API (0.13.0)
-
- * License: Apache-2.0
- * Maven artifact: `com.graphhopper:graphhopper-api:0.13.0`
- * Project: https://www.graphhopper.com/graphhopper-api
- * Source: https://github.com/graphhopper/graphhopper/graphhopper-api
-
-
-GraphHopper Core (0.13.0)
-
- * License: Apache-2.0
- * Maven artifact: `com.graphhopper:graphhopper-core:0.13.0`
- * Project: https://www.graphhopper.com/graphhopper-core
- * Source: https://github.com/graphhopper/graphhopper/graphhopper-core
 
 
 GraphHopper Core (8.0)
@@ -237,14 +189,6 @@ Java-WebSocket (1.3.9)
  * Source: https://github.com/TooTallNate/Java-WebSocket
 
 
-Johnzon :: Core (1.1.13)
-
- * License: Apache-2.0
- * Maven artifact: `org.apache.johnzon:johnzon-core:1.1.13`
- * Project: http://johnzon.apache.org/johnzon-core
- * Source: https://git-wip-us.apache.org/repos/asf?p=johnzon/johnzon-core
-
-
 JSch (0.2.16)
 
  * License: BSD-3-Clause, ISC
@@ -261,22 +205,6 @@ JsonSchemaValidator (1.3.1)
  * Source: https://github.com/networknt/json-schema-validator
 
 
-JSR 374 (JSON Processing) API (1.1.5)
-
- * License: EPL-2.0, GPL-2.0-with-classpath-exception
- * Maven artifact: `jakarta.json:jakarta.json-api:1.1.5`
- * Project: https://javaee.github.io/jsonp
- * Source: https://github.com/eclipse-ee4j/jsonp/jakarta.json-api
-
-
-Logback Classic Module (1.3.8)
-
- * License: EPL-1.0, LGPL-2.1
- * Maven artifact: `ch.qos.logback:logback-classic:1.3.8`
- * Project: http://logback.qos.ch/logback-classic
- * Source: https://github.com/qos-ch/logback/logback-classic
-
-
 Logback Classic Module (1.5.0)
 
  * License: EPL-1.0, LGPL-2.1
@@ -285,28 +213,12 @@ Logback Classic Module (1.5.0)
  * Source: https://github.com/qos-ch/logback/logback-classic
 
 
-Logback Core Module (1.3.8)
-
- * License: EPL-1.0, LGPL-2.1
- * Maven artifact: `ch.qos.logback:logback-core:1.3.8`
- * Project: http://logback.qos.ch/logback-core
- * Source: https://github.com/qos-ch/logback/logback-core
-
-
 Logback Core Module (1.5.0)
 
  * License: EPL-1.0, LGPL-2.1
  * Maven artifact: `ch.qos.logback:logback-core:1.5.0`
  * Project: http://logback.qos.ch/logback-core
  * Source: https://github.com/qos-ch/logback/logback-core
-
-
-org.leadpony.justify (1.1.0)
-
- * License: Apache-2.0
- * Maven artifact: `org.leadpony.justify:justify:1.1.0`
- * Project: https://github.com/leadpony/justify
- * Source: https://github.com/leadpony/justify
 
 
 org.locationtech.jts:jts-core (1.19.0)
@@ -329,14 +241,6 @@ SLF4J API Module (2.0.12)
 
  * License: MIT
  * Maven artifact: `org.slf4j:slf4j-api:2.0.12`
- * Project: http://www.slf4j.org
- * Source: https://github.com/qos-ch/slf4j/slf4j-parent/slf4j-api
-
-
-SLF4J API Module (2.0.9)
-
- * License: MIT
- * Maven artifact: `org.slf4j:slf4j-api:2.0.9`
  * Project: http://www.slf4j.org
  * Source: https://github.com/qos-ch/slf4j/slf4j-parent/slf4j-api
 
