@@ -26,7 +26,31 @@
                 "decel": 0.0,
                 "tau": 0.0
             }
-        }
+        },
+		{
+			"name" : "LV",
+			"vehicleClass" : "ElectricVehicle",
+            "accel": 2.6,
+            "decel": 4.5,
+            "emergencyDecel": 6.0,
+            "length": 5.00,
+            "sigma": 0.5,
+            "tau": 1,
+            "deviations": {
+                "speedFactor": 1.0,
+                "length": 0.0,
+                "minGap": 0.0,
+                "accel": 0.5,
+                "decel": 0.5,
+                "tau": 0.5
+            }
+		},
+		{
+			"name" : "RSU",
+			"applications": [
+				"org,eclipse.mosaic.app.ts.kosnet_applications.slots.SlotRsuApplication"
+				]
+		}
     ],
     "servers": [
         {
@@ -52,11 +76,21 @@
                 },
                 {
                     "applications": [ ],
-                    "name": "Car",
+                    "name": "LV",
                     "group": "Unequipped",
                     "weight": 0.7
                 }
             ]
+        }
+    ],
+	
+    "rsus": [
+        {
+            "name": "RSU",
+            "position": {
+                "latitude": 52.62385395627804,
+                "longitude": 13.563387092369222
+            }
         }
     ]
 }
