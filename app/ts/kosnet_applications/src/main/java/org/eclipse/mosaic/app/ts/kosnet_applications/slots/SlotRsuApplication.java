@@ -24,12 +24,23 @@ import org.eclipse.mosaic.fed.application.app.api.CommunicationApplication;
 import org.eclipse.mosaic.fed.application.app.api.os.RoadSideUnitOperatingSystem;
 import org.eclipse.mosaic.interactions.communication.V2xMessageTransmission;
 import org.eclipse.mosaic.lib.enums.AdHocChannel;
+import org.eclipse.mosaic.lib.enums.SensorType;
+import org.eclipse.mosaic.lib.geo.GeoCircle;
+import org.eclipse.mosaic.lib.geo.GeoPoint;
+import org.eclipse.mosaic.lib.objects.v2x.MessageRouting;
+import org.eclipse.mosaic.lib.objects.v2x.etsi.Cam;
+import org.eclipse.mosaic.lib.objects.v2x.etsi.Denm;
+import org.eclipse.mosaic.lib.objects.v2x.etsi.DenmContent;
 import org.eclipse.mosaic.lib.util.scheduling.Event;
+import org.eclipse.mosaic.rti.TIME;
 
 public class SlotRsuApplication extends AbstractApplication<RoadSideUnitOperatingSystem> implements CommunicationApplication {
 
 	@Override
 	public void processEvent(Event event) throws Exception {
+		
+		getOs().getAdHocModule().sendCam();
+		getOs().getEventManager().addEvent(getOs().getSimulationTime() + TIME.SECOND, this);
 		
 	}
 
@@ -43,7 +54,8 @@ public class SlotRsuApplication extends AbstractApplication<RoadSideUnitOperatin
 				.power(50.)
 				.create());
 		getLog().infoSimTime(this, "AdHoc module enabled");
-		
+
+        getOs().getEventManager().addEvent(getOs().getSimulationTime() + TIME.SECOND, this);
 	}
 
 	@Override
@@ -54,6 +66,25 @@ public class SlotRsuApplication extends AbstractApplication<RoadSideUnitOperatin
 	@Override
 	public void onMessageReceived(ReceivedV2xMessage receivedV2xMessage) {
 		
+		if (receivedV2xMessage.getMessage() instanceof Cam) {
+			Cam message = (Cam) receivedV2xMessage.getMessage();
+			String vehId = message.getUnitID();
+			GeoPoint position = message.getPosition();
+			getLog().infoSimTime(this, "Received CAM: {}, pos={}", vehId, position);
+			
+			Denm denm = prepareDenm(message);
+			getOs().getAdHocModule().sendV2xMessage(denm);
+			getLog().infoSimTime(this, "Sent DENM.");
+		}
+		
+	}
+	
+	private Denm prepareDenm(Cam receivedMessage) {
+		GeoPoint center = getOs().getPosition();
+		MessageRouting routing = getOs().getAdHocModule().createMessageRouting()
+				.geoBroadCast(new GeoCircle(center, 500.));
+		DenmContent content = new DenmContent(getOs().getSimulationTime(), center, null, SensorType.POSITION, 0, 13.89f, 0);
+		return new Denm(routing, content, 0);
 	}
 
 	@Override

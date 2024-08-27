@@ -48,7 +48,7 @@
 		{
 			"name" : "RSU",
 			"applications": [
-				"org,eclipse.mosaic.app.ts.kosnet_applications.slots.SlotRsuApplication"
+				"org.eclipse.mosaic.app.ts.kosnet_applications.slots.SlotRsuApplication"
 				]
 		}
     ],
