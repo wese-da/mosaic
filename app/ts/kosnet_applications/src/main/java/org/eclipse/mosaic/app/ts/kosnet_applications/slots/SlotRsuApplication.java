@@ -34,6 +34,16 @@ import org.eclipse.mosaic.lib.objects.v2x.etsi.DenmContent;
 import org.eclipse.mosaic.lib.util.scheduling.Event;
 import org.eclipse.mosaic.rti.TIME;
 
+import a.MessageId;
+import a.enums.Encoding;
+import a.messages.Payload;
+import de.dlr.ts.v2x.commons.translators.MessagesApp;
+import de.dlr.ts.v2x.wind.denm_v2_23.DENM_PDU_Description.DENM;
+import de.dlr.ts.v2x.wind.denm_v2_23.DENM_PDU_Description.LocationContainer;
+import de.dlr.ts.v2x.wind.its_container_v4.ETSI_ITS_CDD.PathPointPredicted;
+import de.dlr.ts.v2x.wind.its_container_v4.ETSI_ITS_CDD.ReferencePosition;
+import i.WindException;
+
 public class SlotRsuApplication extends AbstractApplication<RoadSideUnitOperatingSystem> implements CommunicationApplication {
 
 	@Override
@@ -46,6 +56,7 @@ public class SlotRsuApplication extends AbstractApplication<RoadSideUnitOperatin
 
 	@Override
 	public void onStartup() {
+		
 		
 		getLog().infoSimTime(this, "Initialize slot RSU application.");
 		getOperatingSystem().getAdHocModule().enable(new AdHocModuleConfiguration()
@@ -85,6 +96,29 @@ public class SlotRsuApplication extends AbstractApplication<RoadSideUnitOperatin
 				.geoBroadCast(new GeoCircle(center, 500.));
 		DenmContent content = new DenmContent(getOs().getSimulationTime(), center, null, SensorType.POSITION, 0, 13.89f, 0);
 		return new Denm(routing, content, 0);
+	}
+	
+	private void createDenm() {
+		
+		try {
+			DENM denm = (DENM)MessagesApp.getInstance().createEmptyMessage(MessageId.DENM_V2);
+			// set reference position
+			ReferencePosition rp = denm.getDenm().getManagement().getEventPosition();
+			rp.getLatitude().setValue(0);
+			rp.getLongitude().setValue(0);
+			// location container
+			LocationContainer lc = denm.getDenm().getLocation();
+			// for all detected vehicles
+			PathPointPredicted ppp = lc.getPredictedPaths().getElement(0).getPathPredicted().getElement(0);
+			ppp.getDeltaLatitude().setValue(0);
+			ppp.getDeltaLongitude().setValue(0);
+			ppp.getSymmetricAreaOffset().setValue(1.75f);
+			Payload p = MessagesApp.getInstance().encode(denm, Encoding.UPER);	
+		} catch (WindException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
 	}
 
 	@Override
