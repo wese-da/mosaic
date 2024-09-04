@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+		<properties>
+				<commons.translators-systemPath>C:/Users/Daniel/work/git/mosaic/app/ts/kosnet_applications/lib/commons.translators-1.2.jar</commons.translators-systemPath>
+		</properties>
+
     <modelVersion>4.0.0</modelVersion>
   
   	<parent>
@@ -27,6 +31,14 @@
         	<artifactId>mosaic-geomath</artifactId>
         	<version>24.1-SNAPSHOT</version>
         </dependency>
+        <dependency>
+		    <groupId>de.dlr.ts.v2x</groupId>
+		    <artifactId>commons.translators</artifactId>
+		    <version>1.2</version>
+		    <scope>system</scope>
+		    <systemPath>${commons.translators-systemPath}</systemPath>
+		</dependency>
+
     </dependencies>
 
 </project>

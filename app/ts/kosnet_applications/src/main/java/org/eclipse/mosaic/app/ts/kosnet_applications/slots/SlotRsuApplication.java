@@ -15,6 +15,9 @@
 
 package org.eclipse.mosaic.app.ts.kosnet_applications.slots;
 
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
+
 import org.eclipse.mosaic.fed.application.ambassador.simulation.communication.AdHocModuleConfiguration;
 import org.eclipse.mosaic.fed.application.ambassador.simulation.communication.CamBuilder;
 import org.eclipse.mosaic.fed.application.ambassador.simulation.communication.ReceivedAcknowledgement;
@@ -25,12 +28,16 @@ import org.eclipse.mosaic.fed.application.app.api.os.RoadSideUnitOperatingSystem
 import org.eclipse.mosaic.interactions.communication.V2xMessageTransmission;
 import org.eclipse.mosaic.lib.enums.AdHocChannel;
 import org.eclipse.mosaic.lib.enums.SensorType;
+import org.eclipse.mosaic.lib.geo.CartesianPoint;
 import org.eclipse.mosaic.lib.geo.GeoCircle;
 import org.eclipse.mosaic.lib.geo.GeoPoint;
+import org.eclipse.mosaic.lib.geo.MutableCartesianPoint;
+import org.eclipse.mosaic.lib.geo.MutableGeoPoint;
 import org.eclipse.mosaic.lib.objects.v2x.MessageRouting;
 import org.eclipse.mosaic.lib.objects.v2x.etsi.Cam;
 import org.eclipse.mosaic.lib.objects.v2x.etsi.Denm;
 import org.eclipse.mosaic.lib.objects.v2x.etsi.DenmContent;
+import org.eclipse.mosaic.lib.objects.v2x.etsi.cam.VehicleAwarenessData;
 import org.eclipse.mosaic.lib.util.scheduling.Event;
 import org.eclipse.mosaic.rti.TIME;
 
@@ -46,8 +53,15 @@ import i.WindException;
 
 public class SlotRsuApplication extends AbstractApplication<RoadSideUnitOperatingSystem> implements CommunicationApplication {
 
+	private Queue<Cam> currentCams = new ConcurrentLinkedQueue<Cam>();
+	
 	@Override
 	public void processEvent(Event event) throws Exception {
+		
+		
+		Denm denm = prepareDenm();
+		getOs().getAdHocModule().sendV2xMessage(denm);
+		getLog().infoSimTime(this, "Sent DENM.");
 		
 		getOs().getAdHocModule().sendCam();
 		getOs().getEventManager().addEvent(getOs().getSimulationTime() + TIME.SECOND, this);
@@ -79,18 +93,16 @@ public class SlotRsuApplication extends AbstractApplication<RoadSideUnitOperatin
 		
 		if (receivedV2xMessage.getMessage() instanceof Cam) {
 			Cam message = (Cam) receivedV2xMessage.getMessage();
+			currentCams.add(message);
 			String vehId = message.getUnitID();
 			GeoPoint position = message.getPosition();
 			getLog().infoSimTime(this, "Received CAM: {}, pos={}", vehId, position);
-			
-			Denm denm = prepareDenm(message);
-			getOs().getAdHocModule().sendV2xMessage(denm);
-			getLog().infoSimTime(this, "Sent DENM.");
 		}
 		
 	}
 	
-	private Denm prepareDenm(Cam receivedMessage) {
+	private Denm prepareDenm() {
+		createDenm();
 		GeoPoint center = getOs().getPosition();
 		MessageRouting routing = getOs().getAdHocModule().createMessageRouting()
 				.geoBroadCast(new GeoCircle(center, 500.));
@@ -101,22 +113,43 @@ public class SlotRsuApplication extends AbstractApplication<RoadSideUnitOperatin
 	private void createDenm() {
 		
 		try {
-			DENM denm = (DENM)MessagesApp.getInstance().createEmptyMessage(MessageId.DENM_V2);
-			// set reference position
-			ReferencePosition rp = denm.getDenm().getManagement().getEventPosition();
-			rp.getLatitude().setValue(0);
-			rp.getLongitude().setValue(0);
-			// location container
-			LocationContainer lc = denm.getDenm().getLocation();
-			// for all detected vehicles
-			PathPointPredicted ppp = lc.getPredictedPaths().getElement(0).getPathPredicted().getElement(0);
-			ppp.getDeltaLatitude().setValue(0);
-			ppp.getDeltaLongitude().setValue(0);
-			ppp.getSymmetricAreaOffset().setValue(1.75f);
-			Payload p = MessagesApp.getInstance().encode(denm, Encoding.UPER);	
-		} catch (WindException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			i.Sequence denm = MessagesApp.getInstance().createEmptyMessage(MessageId.DENM_V2);
+//			// set reference position
+//			GeoPoint egoPosition = getOs().getPosition();
+//			ReferencePosition rp = denm.getDenm().getManagement().getEventPosition();
+//			rp.getLatitude().setValue(egoPosition.getLatitude());
+//			rp.getLongitude().setValue(egoPosition.getLongitude());
+//			// location container
+//			LocationContainer lc = denm.getDenm().getLocation();
+//			// for all detected vehicles
+//			Cam message;
+//			int currentElementIndex = 0;
+//			while ((message = currentCams.poll()) != null) {
+//				VehicleAwarenessData data = (VehicleAwarenessData) message.getAwarenessData();
+//				GeoPoint pos = message.getPosition();
+//				double vehLength = data.getLength();
+//				double heading = data.getHeading();
+//				// first point
+//				PathPointPredicted ppp = lc.getPredictedPaths().getElement(currentElementIndex).getPathPredicted().getElement(0);
+//				ppp.getDeltaLatitude().setValue(egoPosition.getLatitude() - pos.getLatitude());
+//				ppp.getDeltaLongitude().setValue(egoPosition.getLongitude() - pos.getLongitude());
+//				ppp.getSymmetricAreaOffset().setValue(1.75f);
+//				// second point
+//				PathPointPredicted ppp2 = lc.getPredictedPaths().getElement(currentElementIndex).getPathPredicted().getElement(1);
+//				
+//				CartesianPoint pp = new MutableGeoPoint(pos.getLatitude(), pos.getLongitude()).toCartesian();
+//				GeoPoint pp_temp = new MutableCartesianPoint(pp.getX() - vehLength * Math.sin(heading), pp.getY() - vehLength * Math.cos(heading), 0).toGeo();
+//				
+//				ppp2.getDeltaLatitude().setValue(egoPosition.getLatitude() - pp_temp.getLatitude()); // TODO
+//				ppp2.getDeltaLongitude().setValue(egoPosition.getLongitude() - pp_temp.getLongitude()); // TODO
+//				ppp2.getSymmetricAreaOffset().setValue(1.75f);
+//				currentElementIndex++;
+//			}
+//			Payload p = MessagesApp.getInstance().encode(denm, Encoding.UPER);
+//			int length = p.getLength();
+//			getLog().infoSimTime(this, "Created DENM with payload length {}", length);
+		} catch (Exception e) {
+			getLog().error(e.getMessage());
 		}
 		
 	}

@@ -27,7 +27,6 @@ import org.eclipse.mosaic.fed.application.app.api.VehicleApplication;
 import org.eclipse.mosaic.fed.application.app.api.os.VehicleOperatingSystem;
 import org.eclipse.mosaic.interactions.communication.V2xMessageTransmission;
 import org.eclipse.mosaic.lib.enums.AdHocChannel;
-import org.eclipse.mosaic.lib.objects.v2x.etsi.CamContent;
 import org.eclipse.mosaic.lib.objects.v2x.etsi.Denm;
 import org.eclipse.mosaic.lib.objects.vehicle.VehicleData;
 import org.eclipse.mosaic.lib.util.scheduling.Event;
@@ -95,18 +94,18 @@ public class SlotVehicleApplication extends AbstractApplication<VehicleOperating
 	}
 
 	@Override
-	public void onAcknowledgementReceived(ReceivedAcknowledgement acknowledgement) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
 	public void onCamBuilding(CamBuilder camBuilder) {
 		// TODO Auto-generated method stub
 	}
 
 	@Override
 	public void onMessageTransmitted(V2xMessageTransmission v2xMessageTransmission) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void onAcknowledgementReceived(ReceivedAcknowledgement acknowledgement) {
 		// TODO Auto-generated method stub
 		
 	}
