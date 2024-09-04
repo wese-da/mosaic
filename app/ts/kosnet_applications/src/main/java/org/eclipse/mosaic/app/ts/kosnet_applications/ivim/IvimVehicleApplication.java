@@ -13,7 +13,7 @@
  * Contact: mosaic@fokus.fraunhofer.de
  */
 
-package org.eclipse.mosaic.app.ts.kosnet_applications;
+package org.eclipse.mosaic.app.ts.kosnet_applications.ivim;
 
 import java.awt.Color;
 
