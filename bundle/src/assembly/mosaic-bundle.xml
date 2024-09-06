@@ -119,6 +119,12 @@
 				<include>org.eclipse.mosaic.app.ts:kosnet_applications</include>
 			</includes>
 		</dependencySet>
+		<dependencySet>
+			<outputDirectory>scenarios/ETSI_HazardousLocation_S1/application</outputDirectory>
+			<includes>
+				<include>org.eclipse.mosaic.app.ts:kosnet_applications</include>
+			</includes>
+		</dependencySet>
 
 
         <!-- MOSAIC projects -->

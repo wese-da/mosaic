@@ -2,19 +2,19 @@
 	"events": [
 		{
 			"type": {
-				"sensorType": "ICE",
+				"sensorType": "OBSTACLE",
 				"value": 1
 			},
 			"location": {
 				"area": {
 					"type": "Rectangle",
 					"a": {
-						"latitude": 52.229969,
-						"longitude": 11.869180
+						"latitude": 52.231848,
+						"longitude": 11.884322
 					},
 					"b": {
-						"latitude": 52.230120,
-						"longitude": 11.870274
+						"latitude": 52.230087,
+						"longitude": 11.869919
 					}
 				}
 			},

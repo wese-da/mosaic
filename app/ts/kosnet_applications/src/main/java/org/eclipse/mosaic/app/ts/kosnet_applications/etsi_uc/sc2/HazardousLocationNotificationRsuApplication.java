@@ -12,7 +12,7 @@
  *
  * Contact: mosaic@fokus.fraunhofer.de
  */
-package org.eclipse.mosaic.app.ts.kosnet_applications.etsi_uc;
+package org.eclipse.mosaic.app.ts.kosnet_applications.etsi_uc.sc2;
 
 import org.eclipse.mosaic.fed.application.ambassador.simulation.communication.AdHocModuleConfiguration;
 import org.eclipse.mosaic.fed.application.app.AbstractApplication;
@@ -31,7 +31,7 @@ import org.eclipse.mosaic.lib.util.scheduling.Event;
 import org.eclipse.mosaic.rti.TIME;
 
 /**
- * ETSI use case 5.2 ...
+ * ETSI use case 5.2.2
  * This implementation should represent scenario 2 (patroller RSU and DENMs).
  * 
  */

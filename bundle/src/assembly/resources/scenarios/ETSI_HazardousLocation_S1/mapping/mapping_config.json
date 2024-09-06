@@ -15,27 +15,23 @@
             "tau": 1
         }
     ],
-    "vehicles": [
+    "tmcs": [
         {
-            "startingTime": "1.0 s",
-            "targetFlow": 1000,
-            "maxNumberVehicles": 1,
-            "route": "1",
-            "lanes": [ 0 ],
-            "types": [
-                {
-                    "name": "Car",
-                    "weight": 100,
-                    "applications": [ "org.eclipse.mosaic.app.ts.kosnet_applications.etsi_uc.sc2.HazardousLocationNotificationRsuApplication" ]
-                }
-            ]
-        },
+            "name": "SlotManagement",
+            "applications": [
+                "org.eclipse.mosaic.app.ts.kosnet_applications.etsi_uc.HazardousLocationNotificationManagementApp"
+            ],
+            "inductionLoops": [ ],
+            "laneAreaDetectors": [ ]
+        }
+    ],
+    "vehicles": [
         {
             "startingTime": "1 s",
             "targetFlow": 6000,
             "maxNumberVehicles": 400,
             "route": "2",
-            "lanes": [ 0, 1 ],
+            "laneSelectionMode": "BEST",
             "types": [
                 {
                     "name": "Car",
@@ -44,7 +40,7 @@
                 {
                     "name": "Car",
                     "weight": 20,
-                    "applications": [ "org.eclipse.mosaic.app.ts.kosnet_applications.etsi_uc.sc2.HazardousLocationNotificationVehicleApplication" ]
+                    "applications": [ "org.eclipse.mosaic.app.ts.kosnet_applications.etsi_uc.sc1.HazardousLocationNotificationVehicleApplication" ]
                 }
             ]
         },
@@ -53,7 +49,7 @@
             "targetFlow": 1000,
             "maxNumberVehicles": 50,
             "route": "1",
-            "lanes": [ 0 ],
+            "laneSelectionMode": "BEST",
             "types": [
                 {
                     "name": "Car",
@@ -62,7 +58,7 @@
                 {
                     "name": "Car",
                     "weight": 20,
-                    "applications": [ "org.eclipse.mosaic.app.ts.kosnet_applications.etsi_uc.sc2.HazardousLocationNotificationVehicleApplication" ]
+                    "applications": [ "org.eclipse.mosaic.app.ts.kosnet_applications.etsi_uc.sc1.HazardousLocationNotificationVehicleApplication" ]
                 }
             ]
         }

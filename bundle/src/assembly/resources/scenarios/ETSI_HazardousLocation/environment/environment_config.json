@@ -2,7 +2,7 @@
 	"events": [
 		{
 			"type": {
-				"sensorType": "ICE",
+				"sensorType": "OBSTACLE",
 				"value": 1
 			},
 			"location": {
