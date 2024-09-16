@@ -1,0 +1,4 @@
+{
+    "sumoConfigurationFile": "highway.sumocfg",
+	"additionalSumoParamters": "--time-to-teleport 0 --seed 100000 --lanechange-output lanechanges.out.xml --device.tripinfo.probability 1 --tripinfo-output tripinfos.out.xml"
+}

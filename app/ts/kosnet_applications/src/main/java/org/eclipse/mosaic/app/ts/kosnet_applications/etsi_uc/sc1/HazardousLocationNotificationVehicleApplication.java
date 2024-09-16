@@ -19,6 +19,7 @@ import org.eclipse.mosaic.fed.application.ambassador.simulation.communication.Ad
 import org.eclipse.mosaic.fed.application.ambassador.simulation.communication.CamBuilder;
 import org.eclipse.mosaic.fed.application.ambassador.simulation.communication.ReceivedAcknowledgement;
 import org.eclipse.mosaic.fed.application.ambassador.simulation.communication.ReceivedV2xMessage;
+import org.eclipse.mosaic.fed.application.ambassador.simulation.navigation.INavigationModule;
 import org.eclipse.mosaic.fed.application.app.AbstractApplication;
 import org.eclipse.mosaic.fed.application.app.api.CommunicationApplication;
 import org.eclipse.mosaic.fed.application.app.api.VehicleApplication;
@@ -28,10 +29,16 @@ import org.eclipse.mosaic.lib.enums.AdHocChannel;
 import org.eclipse.mosaic.lib.enums.SensorType;
 import org.eclipse.mosaic.lib.geo.GeoCircle;
 import org.eclipse.mosaic.lib.geo.GeoPoint;
+import org.eclipse.mosaic.lib.geo.GeoPolygon;
 import org.eclipse.mosaic.lib.objects.v2x.MessageRouting;
 import org.eclipse.mosaic.lib.objects.v2x.etsi.Denm;
 import org.eclipse.mosaic.lib.objects.v2x.etsi.DenmContent;
 import org.eclipse.mosaic.lib.objects.vehicle.VehicleData;
+import org.eclipse.mosaic.lib.routing.CandidateRoute;
+import org.eclipse.mosaic.lib.routing.RoutingParameters;
+import org.eclipse.mosaic.lib.routing.RoutingPosition;
+import org.eclipse.mosaic.lib.routing.RoutingResponse;
+import org.eclipse.mosaic.lib.routing.util.ReRouteSpecificConnectionsCostFunction;
 import org.eclipse.mosaic.lib.util.scheduling.Event;
 import org.eclipse.mosaic.rti.TIME;
 
@@ -54,8 +61,15 @@ import org.eclipse.mosaic.rti.TIME;
  */
 public class HazardousLocationNotificationVehicleApplication extends AbstractApplication<VehicleOperatingSystem> implements CommunicationApplication, VehicleApplication {
 
+	private boolean routeAdapted = false;
+	
+	private static final GeoPolygon HAZARD_POLY = new GeoPolygon(GeoPoint.latLon(52.231848, 11.884322), GeoPoint.latLon(52.230087, 11.869919));
+
 	@Override
 	public void processEvent(Event event) throws Exception {
+
+		// Send CAM
+		getOperatingSystem().getAdHocModule().sendCam();
 		
 		// Send DENM
 		GeoPoint center = getOperatingSystem().getPosition();
@@ -63,16 +77,13 @@ public class HazardousLocationNotificationVehicleApplication extends AbstractApp
 				.geoBroadCast(new GeoCircle(center, 500.));
 		String roadId = getOperatingSystem().getNavigationModule().getRoadPosition().getConnection().getId();
 		DenmContent content = new DenmContent(getOs().getSimulationTime(), center, roadId,
-				SensorType.OBSTACLE, 1, 0.0f, 0);
+				SensorType.OBSTACLE, 1, 0.0f, 0.0f);
 		Denm denm = new Denm(routing, content, 0);
 		getOperatingSystem().getAdHocModule().sendV2xMessage(denm);
 		getLog().infoSimTime(this, "Sent DENM hazard warning.");
 		
-		// Send CAM
-		getOperatingSystem().getAdHocModule().sendCam();
-		
 		// Rinse and repeat
-		getOperatingSystem().getEventManager().addEvent(new Event(getOs().getSimulationTime() + TIME.MILLI_SECOND * 100, this));
+		getOperatingSystem().getEventManager().addEvent(new Event(getOs().getSimulationTime() + TIME.SECOND , this));			
 		
 	}
 
@@ -108,6 +119,11 @@ public class HazardousLocationNotificationVehicleApplication extends AbstractApp
 			
 			// only relevant if the vehicle is driving on the same edge
 			if (roadId.equals(getOperatingSystem().getNavigationModule().getRoadPosition().getConnection().getId())) {
+				if(routeAdapted) {
+					getLog().infoSimTime(this, "Route already changed.");
+				} else {
+					reroute(denm);
+				} 
 //				getOperatingSystem().changeLane(getOperatingSystem().getRoadPosition().getLaneIndex()+1, 100000000000L);
 //				GeoPoint hazardPosition = denm.getSenderPosition();
 				
@@ -118,6 +134,43 @@ public class HazardousLocationNotificationVehicleApplication extends AbstractApp
 			
 		}
 		
+	}
+	
+	private void reroute(final Denm denm) {
+		ReRouteSpecificConnectionsCostFunction myCostFunction = new ReRouteSpecificConnectionsCostFunction();
+        myCostFunction.setConnectionSpeedMS(denm.getEventRoadId(), denm.getCausedSpeed());
+
+        /*
+         * The vehicle on which this application has been deployed has a navigation module
+         * that we need to retrieve in order to switch routes.
+         */
+        INavigationModule navigationModule = getOs().getNavigationModule();
+
+        /*
+         * Routing parameters are used for route calculation. In our case, we want a specific cost function
+         * to be used for getting the best route.
+         */
+        RoutingParameters routingParameters = new RoutingParameters().costFunction(myCostFunction);
+
+        /*
+         * To let the navigation module calculate a new route, we need a target position and routing parameters.
+         * For the target position, we keep the one our navigation module currently has, i.e. the position our vehicle
+         * is currently navigating to. This means that we do not want to change our destination, only calculate
+         * a new route to circumvent the obstacle.
+         */
+        RoutingResponse response = navigationModule.calculateRoutes(new RoutingPosition(navigationModule.getTargetPosition()), routingParameters);
+
+        /*
+         * The navigation module has calculated a number of possible routes, of which we want to retrieve the best one
+         * according to our specifically assigned cost function. If a best route exists, we call the navigation module
+         * to switch to it.
+         */
+        CandidateRoute newRoute = response.getBestRoute();
+        if (newRoute != null) {
+            getLog().infoSimTime(this, "Sending Change Route Command at position: {}", denm.getSenderPosition());
+            navigationModule.switchRoute(newRoute);
+            routeAdapted = true;
+        }
 	}
 
 	@Override
@@ -144,7 +197,10 @@ public class HazardousLocationNotificationVehicleApplication extends AbstractApp
 		
 		if (hazardDetected) {
 			getOperatingSystem().getEventManager().addEvent(new Event(getOperatingSystem().getSimulationTime() + TIME.SECOND, this));
-		}		
+		}
+
+		getLog().infoSimTime(this, "Driving on edge {}, lane {}", getOperatingSystem().getNavigationModule().getRoadPosition().getConnectionId(),
+				getOperatingSystem().getNavigationModule().getRoadPosition().getLaneIndex());
 	}
 
 }
