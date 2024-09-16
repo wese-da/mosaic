@@ -41,14 +41,6 @@ import org.eclipse.mosaic.lib.objects.v2x.etsi.cam.VehicleAwarenessData;
 import org.eclipse.mosaic.lib.util.scheduling.Event;
 import org.eclipse.mosaic.rti.TIME;
 
-import a.MessageId;
-import a.enums.Encoding;
-import a.messages.Payload;
-import de.dlr.ts.v2x.commons.translators.MessagesApp;
-import de.dlr.ts.v2x.wind.denm_v2_23.DENM_PDU_Description.DENM;
-import de.dlr.ts.v2x.wind.denm_v2_23.DENM_PDU_Description.LocationContainer;
-import de.dlr.ts.v2x.wind.its_container_v4.ETSI_ITS_CDD.PathPointPredicted;
-import de.dlr.ts.v2x.wind.its_container_v4.ETSI_ITS_CDD.ReferencePosition;
 
 public class SlotRsuApplication extends AbstractApplication<RoadSideUnitOperatingSystem> implements CommunicationApplication {
 
@@ -111,45 +103,45 @@ public class SlotRsuApplication extends AbstractApplication<RoadSideUnitOperatin
 	
 	private void createDenm() {
 		
-		try {
-			DENM denm = (DENM) MessagesApp.getInstance().createEmptyMessage(MessageId.DENM_V2);
-			// set reference position
-			GeoPoint egoPosition = getOs().getPosition();
-			ReferencePosition rp = denm.getDenm().getManagement().getEventPosition();
-			rp.getLatitude().setValue(egoPosition.getLatitude());
-			rp.getLongitude().setValue(egoPosition.getLongitude());
-			// location container
-			LocationContainer lc = denm.getDenm().getLocation();
-			// for all detected vehicles
-			Cam message;
-			int currentElementIndex = 0;
-			while ((message = currentCams.poll()) != null) {
-				VehicleAwarenessData data = (VehicleAwarenessData) message.getAwarenessData();
-				GeoPoint pos = message.getPosition();
-				double vehLength = data.getLength();
-				double heading = data.getHeading();
-				// first point
-				PathPointPredicted ppp = lc.getPredictedPaths().getElement(currentElementIndex).getPathPredicted().getElement(0);
-				ppp.getDeltaLatitude().setValue(egoPosition.getLatitude() - pos.getLatitude());
-				ppp.getDeltaLongitude().setValue(egoPosition.getLongitude() - pos.getLongitude());
-				ppp.getSymmetricAreaOffset().setValue(1.75f);
-				// second point
-				PathPointPredicted ppp2 = lc.getPredictedPaths().getElement(currentElementIndex).getPathPredicted().getElement(1);
-				
-				CartesianPoint pp = new MutableGeoPoint(pos.getLatitude(), pos.getLongitude()).toCartesian();
-				GeoPoint pp_temp = new MutableCartesianPoint(pp.getX() - vehLength * Math.sin(heading), pp.getY() - vehLength * Math.cos(heading), 0).toGeo();
-				
-				ppp2.getDeltaLatitude().setValue(egoPosition.getLatitude() - pp_temp.getLatitude()); // TODO
-				ppp2.getDeltaLongitude().setValue(egoPosition.getLongitude() - pp_temp.getLongitude()); // TODO
-				ppp2.getSymmetricAreaOffset().setValue(1.75f);
-				currentElementIndex++;
-			}
-			Payload p = MessagesApp.getInstance().encode(denm, Encoding.UPER);
-			int length = p.getLength();
-			getLog().infoSimTime(this, "Created DENM with payload length {}", length);
-		} catch (Exception e) {
-			getLog().error(e.getMessage());
-		}
+//		try {
+//			DENM denm = (DENM) MessagesApp.getInstance().createEmptyMessage(MessageId.DENM_V2);
+//			// set reference position
+//			GeoPoint egoPosition = getOs().getPosition();
+//			ReferencePosition rp = denm.getDenm().getManagement().getEventPosition();
+//			rp.getLatitude().setValue(egoPosition.getLatitude());
+//			rp.getLongitude().setValue(egoPosition.getLongitude());
+//			// location container
+//			LocationContainer lc = denm.getDenm().getLocation();
+//			// for all detected vehicles
+//			Cam message;
+//			int currentElementIndex = 0;
+//			while ((message = currentCams.poll()) != null) {
+//				VehicleAwarenessData data = (VehicleAwarenessData) message.getAwarenessData();
+//				GeoPoint pos = message.getPosition();
+//				double vehLength = data.getLength();
+//				double heading = data.getHeading();
+//				// first point
+//				PathPointPredicted ppp = lc.getPredictedPaths().getElement(currentElementIndex).getPathPredicted().getElement(0);
+//				ppp.getDeltaLatitude().setValue(egoPosition.getLatitude() - pos.getLatitude());
+//				ppp.getDeltaLongitude().setValue(egoPosition.getLongitude() - pos.getLongitude());
+//				ppp.getSymmetricAreaOffset().setValue(1.75f);
+//				// second point
+//				PathPointPredicted ppp2 = lc.getPredictedPaths().getElement(currentElementIndex).getPathPredicted().getElement(1);
+//				
+//				CartesianPoint pp = new MutableGeoPoint(pos.getLatitude(), pos.getLongitude()).toCartesian();
+//				GeoPoint pp_temp = new MutableCartesianPoint(pp.getX() - vehLength * Math.sin(heading), pp.getY() - vehLength * Math.cos(heading), 0).toGeo();
+//				
+//				ppp2.getDeltaLatitude().setValue(egoPosition.getLatitude() - pp_temp.getLatitude()); // TODO
+//				ppp2.getDeltaLongitude().setValue(egoPosition.getLongitude() - pp_temp.getLongitude()); // TODO
+//				ppp2.getSymmetricAreaOffset().setValue(1.75f);
+//				currentElementIndex++;
+//			}
+//			Payload p = MessagesApp.getInstance().encode(denm, Encoding.UPER);
+//			int length = p.getLength();
+//			getLog().infoSimTime(this, "Created DENM with payload length {}", length);
+//		} catch (Exception e) {
+//			getLog().error(e.getMessage());
+//		}
 		
 	}
 
