@@ -13,7 +13,7 @@
  * Contact: mosaic@fokus.fraunhofer.de
  */
 
-package org.eclipse.mosaic.app.ts.kosnet_applications.etsi.uc;
+package org.eclipse.mosaic.app.ts.kosnet_applications.etsi.uc.hazloc;
 
 import java.util.Collection;
 

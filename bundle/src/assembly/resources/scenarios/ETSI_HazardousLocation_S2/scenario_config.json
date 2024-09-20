@@ -1,6 +1,6 @@
 {
     "simulation": {
-        "id": "ETSI_HL",
+        "id": "ETSI_HL_S2",
         "duration": "1000s",
         "randomSeed": 268965854,
         "projection": {

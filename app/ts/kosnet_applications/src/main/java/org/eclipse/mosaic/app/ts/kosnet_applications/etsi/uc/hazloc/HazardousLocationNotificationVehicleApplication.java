@@ -1,4 +1,4 @@
-package org.eclipse.mosaic.app.ts.kosnet_applications.etsi.uc.hazloc.sc1;
+package org.eclipse.mosaic.app.ts.kosnet_applications.etsi.uc.hazloc;
 
 /*
  * Copyright (c) 2020 Fraunhofer FOKUS and others. All rights reserved.
@@ -61,26 +61,33 @@ import org.eclipse.mosaic.rti.TIME;
  */
 public class HazardousLocationNotificationVehicleApplication extends AbstractApplication<VehicleOperatingSystem> implements CommunicationApplication, VehicleApplication {
 
+	private final int scenarioId;
 	private boolean routeAdapted = false;
 	
 	private static final GeoPolygon HAZARD_POLY = new GeoPolygon(GeoPoint.latLon(52.231848, 11.884322), GeoPoint.latLon(52.230087, 11.869919));
 
+	public HazardousLocationNotificationVehicleApplication(int scenarioId) {
+		this.scenarioId = scenarioId;
+	}
+	
 	@Override
 	public void processEvent(Event event) throws Exception {
 
 		// Send CAM
 		getOperatingSystem().getAdHocModule().sendCam();
 		
-		// Send DENM
-		GeoPoint center = getOperatingSystem().getPosition();
-		MessageRouting routing = getOs().getAdHocModule().createMessageRouting()
-				.geoBroadCast(new GeoCircle(center, 500.));
-		String roadId = getOperatingSystem().getNavigationModule().getRoadPosition().getConnection().getId();
-		DenmContent content = new DenmContent(getOs().getSimulationTime(), center, roadId,
-				SensorType.OBSTACLE, 1, 0.0f, 0.0f);
-		Denm denm = new Denm(routing, content, 0);
-		getOperatingSystem().getAdHocModule().sendV2xMessage(denm);
-		getLog().infoSimTime(this, "Sent DENM hazard warning.");
+		if (this.scenarioId > 1) {
+			// Send DENM
+			GeoPoint center = getOperatingSystem().getPosition();
+			MessageRouting routing = getOs().getAdHocModule().createMessageRouting()
+					.geoBroadCast(new GeoCircle(center, 500.));
+			String roadId = getOperatingSystem().getNavigationModule().getRoadPosition().getConnection().getId();
+			DenmContent content = new DenmContent(getOs().getSimulationTime(), center, roadId,
+					SensorType.OBSTACLE, 1, 0.0f, 0.0f);
+			Denm denm = new Denm(routing, content, 0);
+			getOperatingSystem().getAdHocModule().sendV2xMessage(denm);
+			getLog().infoSimTime(this, "Sent DENM hazard warning.");	
+		}
 		
 		// Rinse and repeat
 		getOperatingSystem().getEventManager().addEvent(new Event(getOs().getSimulationTime() + TIME.SECOND , this));			
@@ -125,10 +132,6 @@ public class HazardousLocationNotificationVehicleApplication extends AbstractApp
 					reroute(denm);
 				} 
 //				getOperatingSystem().changeLane(getOperatingSystem().getRoadPosition().getLaneIndex()+1, 100000000000L);
-//				GeoPoint hazardPosition = denm.getSenderPosition();
-				
-//				double egoSpeed = getOperatingSystem().getVehicleData().getSpeed();
-//				double distanceToHazard = hazardPosition.distanceTo(getOperatingSystem().getPosition());
 				
 			}
 			
@@ -193,14 +196,16 @@ public class HazardousLocationNotificationVehicleApplication extends AbstractApp
 
 	@Override
 	public void onVehicleUpdated(VehicleData previousVehicleData, VehicleData updatedVehicleData) {
-		boolean hazardDetected = getOperatingSystem().getStateOfEnvironmentSensor(SensorType.OBSTACLE) > 0;
-		
-		if (hazardDetected) {
-			getOperatingSystem().getEventManager().addEvent(new Event(getOperatingSystem().getSimulationTime() + TIME.SECOND, this));
-		}
+		if (scenarioId == 1) {
+			boolean hazardDetected = getOperatingSystem().getStateOfEnvironmentSensor(SensorType.OBSTACLE) > 0;
+			
+			if (hazardDetected) {
+				getOperatingSystem().getEventManager().addEvent(new Event(getOperatingSystem().getSimulationTime() + TIME.SECOND, this));
+			}
 
-		getLog().infoSimTime(this, "Driving on edge {}, lane {}", getOperatingSystem().getNavigationModule().getRoadPosition().getConnectionId(),
-				getOperatingSystem().getNavigationModule().getRoadPosition().getLaneIndex());
+			getLog().infoSimTime(this, "Driving on edge {}, lane {}", getOperatingSystem().getNavigationModule().getRoadPosition().getConnectionId(),
+					getOperatingSystem().getNavigationModule().getRoadPosition().getLaneIndex());
+		}
 	}
 
 }

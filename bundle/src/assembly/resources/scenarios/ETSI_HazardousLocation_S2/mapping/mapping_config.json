@@ -26,7 +26,7 @@
                 {
                     "name": "Car",
                     "weight": 100,
-                    "applications": [ "org.eclipse.mosaic.app.ts.kosnet_applications.etsi.uc.hazloc.sc2.HazardousLocationNotificationRsuApplication" ]
+                    "applications": [ "org.eclipse.mosaic.app.ts.kosnet_applications.etsi.uc.hazloc.HazardousLocationNotificationRsuApplication" ]
                 }
             ]
         },
@@ -44,7 +44,7 @@
                 {
                     "name": "Car",
                     "weight": 20,
-                    "applications": [ "org.eclipse.mosaic.app.ts.kosnet_applications.etsi.uc.hazloc.sc2.HazardousLocationNotificationVehicleApplication" ]
+                    "applications": [ "org.eclipse.mosaic.app.ts.kosnet_applications.etsi.uc.hazloc.HazardousLocationNotificationVehicleApplication(2)" ]
                 }
             ]
         },
@@ -62,7 +62,7 @@
                 {
                     "name": "Car",
                     "weight": 20,
-                    "applications": [ "org.eclipse.mosaic.app.ts.kosnet_applications.etsi.uc.hazloc.sc2.HazardousLocationNotificationVehicleApplication" ]
+                    "applications": [ "org.eclipse.mosaic.app.ts.kosnet_applications.etsi.uc.hazloc.HazardousLocationNotificationVehicleApplication(2)" ]
                 }
             ]
         }
