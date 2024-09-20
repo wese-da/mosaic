@@ -1,4 +1,4 @@
-package org.eclipse.mosaic.app.ts.kosnet_applications.etsi_uc.sc1;
+package org.eclipse.mosaic.app.ts.kosnet_applications.etsi.uc.hazloc.sc1;
 
 /*
  * Copyright (c) 2020 Fraunhofer FOKUS and others. All rights reserved.

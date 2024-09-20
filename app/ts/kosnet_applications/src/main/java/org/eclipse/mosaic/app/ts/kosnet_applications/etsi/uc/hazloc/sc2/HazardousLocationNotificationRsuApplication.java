@@ -12,7 +12,7 @@
  *
  * Contact: mosaic@fokus.fraunhofer.de
  */
-package org.eclipse.mosaic.app.ts.kosnet_applications.etsi_uc.sc2;
+package org.eclipse.mosaic.app.ts.kosnet_applications.etsi.uc.hazloc.sc2;
 
 import org.eclipse.mosaic.fed.application.ambassador.simulation.communication.AdHocModuleConfiguration;
 import org.eclipse.mosaic.fed.application.app.AbstractApplication;

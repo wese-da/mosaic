@@ -1,4 +1,4 @@
-package org.eclipse.mosaic.app.ts.kosnet_applications.etsi_uc.sc2;
+package org.eclipse.mosaic.app.ts.kosnet_applications.etsi.uc.hazloc.sc2;
 
 import java.awt.Color;
 /*
