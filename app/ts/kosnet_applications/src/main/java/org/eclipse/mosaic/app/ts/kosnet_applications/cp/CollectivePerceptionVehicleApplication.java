@@ -20,6 +20,11 @@ import org.eclipse.mosaic.fed.application.ambassador.simulation.perception.Simpl
 import org.eclipse.mosaic.fed.application.app.AbstractApplication;
 import org.eclipse.mosaic.fed.application.app.api.os.VehicleOperatingSystem;
 import org.eclipse.mosaic.lib.enums.AdHocChannel;
+import org.eclipse.mosaic.lib.objects.v2x.etsi.Cpm;
+import org.eclipse.mosaic.lib.objects.v2x.etsi.CpmContent;
+import org.eclipse.mosaic.lib.objects.v2x.etsi.cpm.PerceivedObjectsData;
+import org.eclipse.mosaic.lib.objects.v2x.etsi.cpm.SenderInformation;
+import org.eclipse.mosaic.lib.objects.v2x.etsi.cpm.SenderType;
 import org.eclipse.mosaic.lib.util.scheduling.Event;
 
 public class CollectivePerceptionVehicleApplication extends AbstractApplication<VehicleOperatingSystem> {
@@ -32,6 +37,8 @@ public class CollectivePerceptionVehicleApplication extends AbstractApplication<
 	
 	@Override
 	public void processEvent(Event event) throws Exception {
+		
+		getOperatingSystem().getAdHocModule().sendV2xMessage(generateCpm());
 		
 	}
 	
@@ -50,11 +57,18 @@ public class CollectivePerceptionVehicleApplication extends AbstractApplication<
 			getLog().infoSimTime(this, "AdHoc module enabled");
 		}
 		
+		getOperatingSystem().getPerceptionModule().enable(new SimplePerceptionConfiguration.Builder(360, 50).build());
+		
 	}
 	
-	private void cp() {
-		getOperatingSystem().getPerceptionModule().enable(new SimplePerceptionConfiguration.Builder(360, 50).build());
-		getOperatingSystem().getPerceptionModule().getPerceivedObjects();
+	private Cpm generateCpm() {
+		
+		PerceivedObjectsData pod = new PerceivedObjectsData(getOperatingSystem().getId());
+		CpmContent content = new CpmContent(getOperatingSystem().getSimulationTime(), new SenderInformation(SenderType.VEHICLE), pod);
+		Cpm cpm = new Cpm(getOperatingSystem().getAdHocModule().createMessageRouting().topoBroadCast(), content, 200);
+		
+		return cpm;
+		
 	}
 
 	@Override
