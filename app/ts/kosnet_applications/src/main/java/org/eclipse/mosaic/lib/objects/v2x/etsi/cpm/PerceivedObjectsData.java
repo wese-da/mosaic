@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.mosaic.fed.application.ambassador.simulation.perception.index.objects.SpatialObject;
+import org.eclipse.mosaic.fed.application.ambassador.simulation.perception.index.objects.VehicleObject;
 import org.eclipse.mosaic.lib.objects.ToDataOutput;
 
 public class PerceivedObjectsData implements ToDataOutput, Serializable {
@@ -29,14 +30,14 @@ public class PerceivedObjectsData implements ToDataOutput, Serializable {
 	private static final long serialVersionUID = 8383938606513263329L;
 	
 	private String sensorId;
-	private List<SpatialObject<?>> perceivedObjects;
+	private List<VehicleObject> perceivedObjects;
 	
 	public PerceivedObjectsData(String sensorId) {
 		this.sensorId = sensorId;
-		this.perceivedObjects = new ArrayList<SpatialObject<?>>();
+		this.perceivedObjects = new ArrayList<VehicleObject>();
 	}
 	
-	public PerceivedObjectsData(String sensorId, List<SpatialObject<?>> list) {
+	public PerceivedObjectsData(String sensorId, List<VehicleObject> list) {
 		this.sensorId = sensorId;
 		this.perceivedObjects = list;
 	}
@@ -53,11 +54,11 @@ public class PerceivedObjectsData implements ToDataOutput, Serializable {
 		return sensorId;
 	}
 	
-	public void addPerceivedObjects(final List<SpatialObject<?>> objects) {
+	public void addPerceivedObjects(final List<VehicleObject> objects) {
 		this.perceivedObjects.addAll(objects);
 	}
 	
-	public List<SpatialObject<?>> getPerceivedObjects() {
+	public List<VehicleObject> getPerceivedObjects() {
 		return perceivedObjects;
 	}
 
