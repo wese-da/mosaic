@@ -56,6 +56,7 @@ Additional simulators and assessment features are provided by [Fraunhofer FOKUS]
 * The coupling to [OMNeT++](https://omnetpp.org) is implemented in a very similar manner. The corresponding federate implementation can be found [in our MOSAIC Addons repository](https://github.com/mosaic-addons/omnetpp-federate). 
   We currently support OMNeT++ version `5.5` in combination with the INET framework in version `4.1`.  
 * We created the [Berlin SUMO Traffic (BeST) scenario](https://github.com/mosaic-addons/best-scenario) which provides 2.2 million vehicle trips in 24h for Berlin, Germany. The scenario is fully compatible with the latest release of MOSAIC.
+* In our research, we currently use Eclipse MOSAIC and the BeST scenario to evaluate traffic state estimation algorithms. For that, we provide [application models and tools for Traffic State Estimation](https://github.com/mosaic-addons/traffic-state-estimation) compatible with MOSAIC.
 
 ## Contact
 
@@ -64,6 +65,9 @@ Any questions regarding Eclipse MOSAIC can be asked, discussed, and found in the
 For further questions we are available via mosaic@fokus.fraunhofer.de
 
 ## Prerequisites
+
+> [!IMPORTANT]  
+> **In contrast to previous versions, Eclipse MOSAIC now requires at least Java 17 SDK.**
 
 For a successful build you need the following software to be installed:
 
@@ -89,8 +93,10 @@ After extracting this bundle to an arbitrary path, Eclipse MOSAIC can be execute
 
     mosaic.sh -s HelloWorld
     mosaic.bat -s HelloWorld 
-    
-Besides, the simulation can also be started in your IDE using the main method in `org.eclipse.mosaic.starter.MosaicStarter`.
+
+## IDE Setup
+
+Apart from the aforementioned approach, the simulation can also be started in your IDE using the main method in `org.eclipse.mosaic.starter.MosaicStarter`. Please have a look at the setup page in the documentation [here](https://eclipse.dev/mosaic/docs/extending_mosaic/).
 
 ## License
 
