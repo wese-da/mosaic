@@ -1,0 +1,37 @@
+{
+    "simulation": {
+        "id": "krampnitz",
+        "duration": "1000s",
+        "randomSeed": 268965854,
+        "projection": {
+            "centerCoordinates": {
+                "latitude": 52.42558851524313,
+                "longitude": 13.05297454781207
+            },
+            "cartesianOffset": {
+                "x": -365633.14,
+                "y": -5808793.61
+            }
+        },
+        "network": {
+            "netMask": "255.255.0.0",
+            "vehicleNet": "10.1.0.0",
+            "rsuNet": "10.2.0.0",
+            "tlNet": "10.3.0.0",
+            "csNet": "10.4.0.0",
+            "serverNet": "10.5.0.0",
+            "tmcNet": "10.6.0.0"
+        }
+    },
+    "federates": {
+        "application": true,
+        "environment": false,
+        "cell": false,
+        "ns3": false,
+        "omnetpp": false,
+        "output": true,
+        "sns": false,
+        "sumo": true,
+        "phabmacs": false
+    }
+}
