@@ -33,6 +33,8 @@ import org.eclipse.mosaic.lib.geo.GeoCircle;
 import org.eclipse.mosaic.lib.geo.GeoPoint;
 import org.eclipse.mosaic.lib.geo.MutableCartesianPoint;
 import org.eclipse.mosaic.lib.geo.MutableGeoPoint;
+import org.eclipse.mosaic.lib.objects.kosnet.SlotManagementMessage;
+import org.eclipse.mosaic.lib.objects.kosnet.SmmContent;
 import org.eclipse.mosaic.lib.objects.v2x.MessageRouting;
 import org.eclipse.mosaic.lib.objects.v2x.etsi.Cam;
 import org.eclipse.mosaic.lib.objects.v2x.etsi.Denm;
@@ -50,12 +52,12 @@ public class SlotRsuApplication extends AbstractApplication<RoadSideUnitOperatin
 	public void processEvent(Event event) throws Exception {
 		
 		
-		Denm denm = prepareDenm();
-		getOs().getAdHocModule().sendV2xMessage(denm);
-		getLog().infoSimTime(this, "Sent DENM.");
-		
-		getOs().getAdHocModule().sendCam();
-		getOs().getEventManager().addEvent(getOs().getSimulationTime() + TIME.SECOND, this);
+//		Denm denm = prepareDenm();
+//		getOs().getAdHocModule().sendV2xMessage(denm);
+//		getLog().infoSimTime(this, "Sent DENM.");
+//		
+//		getOs().getAdHocModule().sendCam();
+//		getOs().getEventManager().addEvent(getOs().getSimulationTime() + TIME.SECOND, this);
 		
 	}
 
@@ -82,13 +84,22 @@ public class SlotRsuApplication extends AbstractApplication<RoadSideUnitOperatin
 	@Override
 	public void onMessageReceived(ReceivedV2xMessage receivedV2xMessage) {
 		
-		if (receivedV2xMessage.getMessage() instanceof Cam) {
-			Cam message = (Cam) receivedV2xMessage.getMessage();
-			currentCams.add(message);
-			String vehId = message.getUnitID();
-			GeoPoint position = message.getPosition();
-			getLog().infoSimTime(this, "Received CAM: {}, pos={}", vehId, position);
+		if (receivedV2xMessage.getMessage() instanceof SlotManagementMessage) {
+			SlotManagementMessage smm = (SlotManagementMessage) receivedV2xMessage.getMessage();
+			if (smm.isRequestMessage()) {
+				SlotManagementMessage ack = new SlotManagementMessage(getOperatingSystem().getAdHocModule().createMessageRouting().topoCast(smm.getSenderId(), 0),
+						new SmmContent(getOperatingSystem().getSimulationTime(), getOperatingSystem().getId(), false), 200);
+				getOperatingSystem().getAdHocModule().sendV2xMessage(ack);
+			}
 		}
+		
+//		if (receivedV2xMessage.getMessage() instanceof Cam) {
+//			Cam message = (Cam) receivedV2xMessage.getMessage();
+//			currentCams.add(message);
+//			String vehId = message.getUnitID();
+//			GeoPoint position = message.getPosition();
+//			getLog().infoSimTime(this, "Received CAM: {}, pos={}", vehId, position);
+//		}
 		
 	}
 	

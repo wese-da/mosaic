@@ -27,16 +27,23 @@ import org.eclipse.mosaic.fed.application.app.api.VehicleApplication;
 import org.eclipse.mosaic.fed.application.app.api.os.VehicleOperatingSystem;
 import org.eclipse.mosaic.interactions.communication.V2xMessageTransmission;
 import org.eclipse.mosaic.lib.enums.AdHocChannel;
+import org.eclipse.mosaic.lib.enums.SensorType;
+import org.eclipse.mosaic.lib.geo.GeoPolygon;
+import org.eclipse.mosaic.lib.objects.kosnet.SlotManagementMessage;
+import org.eclipse.mosaic.lib.objects.kosnet.SmmContent;
+import org.eclipse.mosaic.lib.objects.v2x.V2xMessage;
 import org.eclipse.mosaic.lib.objects.v2x.etsi.Denm;
+import org.eclipse.mosaic.lib.objects.v2x.etsi.DenmContent;
 import org.eclipse.mosaic.lib.objects.vehicle.VehicleData;
 import org.eclipse.mosaic.lib.util.scheduling.Event;
 import org.eclipse.mosaic.rti.TIME;
 
 public class SlotVehicleApplication extends AbstractApplication<VehicleOperatingSystem> implements CommunicationApplication, VehicleApplication {
 
+	private boolean hasSlot = false;
+	
 	@Override
 	public void onShutdown() {
-		// TODO Auto-generated method stub
 		
 	}
 
@@ -56,10 +63,8 @@ public class SlotVehicleApplication extends AbstractApplication<VehicleOperating
 			getLog().infoSimTime(this, "AdHoc module enabled");
 		}
 		
-		getOperatingSystem().requestVehicleParametersUpdate()
-			.changeColor(Color.RED)
-			.apply();
-
+		getOperatingSystem().getAdHocModule().sendV2xMessage(generateRequestMessage());
+		
         getOs().getEventManager().addEvent(getOs().getSimulationTime() + TIME.SECOND, this);
 	}
 
@@ -69,25 +74,50 @@ public class SlotVehicleApplication extends AbstractApplication<VehicleOperating
 
 	@Override
 	public void processEvent(Event arg0) throws Exception {
-        sendCam();
+		// send CAM
+		getOs().getAdHocModule().sendCam();
+		
+		if (!hasSlot) {
+			getOperatingSystem().getAdHocModule().sendV2xMessage(generateRequestMessage());
+		} else {
+			// change color scheme
+			getOperatingSystem().requestVehicleParametersUpdate()
+			.changeColor(Color.BLUE)
+			.apply();
+
+			// send DENM with slot
+			String extendedContainer = "slot";
+			GeoPolygon eventArea = new GeoPolygon(getOperatingSystem().getPosition()); //TODO ?
+			DenmContent content = new DenmContent(getOperatingSystem().getSimulationTime(), getOperatingSystem().getPosition(),
+					getOperatingSystem().getNavigationModule().getRoadPosition().getConnectionId(), SensorType.POSITION, 0,
+					(float) getOperatingSystem().getVehicleData().getSpeed(), getOperatingSystem().getVehicleData().getThrottle().floatValue(),
+					getOperatingSystem().getPosition(), eventArea, extendedContainer);
+			Denm denm = new Denm(getOperatingSystem().getAdHocModule().createMessageRouting().topoBroadCast(), content, 200);
+			getOperatingSystem().getAdHocModule().sendV2xMessage(denm);
+		}
 
         getOs().getEventManager().addEvent(getOs().getSimulationTime() + TIME.SECOND, this);
 	}
-
-    private void sendCam() {
-        getLog().infoSimTime(this, "Sending CAM");
-        getOs().getAdHocModule().sendCam();
-    }
+	
+	private SlotManagementMessage generateRequestMessage() {
+		SlotManagementMessage smm = new SlotManagementMessage(getOperatingSystem().getAdHocModule().createMessageRouting().topoBroadCast(),
+				new SmmContent(getOperatingSystem().getSimulationTime(), getOperatingSystem().getId(), true), 200);
+		return smm;
+	}
 
 	@Override
 	public void onVehicleUpdated(VehicleData previousVehicleData, VehicleData updatedVehicleData) {
-		// TODO Auto-generated method stub
 		
 	}
 
 	@Override
 	public void onMessageReceived(ReceivedV2xMessage receivedV2xMessage) {
-		if (receivedV2xMessage.getMessage() instanceof Denm) {
+		V2xMessage msg = receivedV2xMessage.getMessage();
+		if (msg instanceof SlotManagementMessage) {
+			if (!((SlotManagementMessage) msg).isRequestMessage()) {
+				hasSlot = true;
+			}
+		} else if (msg instanceof Denm) {
 			getLog().infoSimTime(this, "Received DENM");
 		}
 		
