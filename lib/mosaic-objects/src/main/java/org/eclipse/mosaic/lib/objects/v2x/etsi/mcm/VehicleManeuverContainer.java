@@ -4,8 +4,8 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.annotation.Nonnull;
 
@@ -25,12 +25,20 @@ public class VehicleManeuverContainer implements ToDataOutput, Serializable {
 	 */
 	private static final long serialVersionUID = -7551602045572235542L;
 	private final GeoPoint currentPoint;
-	private Set<McmTrajectory> mcmTrajectories;
+	private List<McmTrajectory> mcmTrajectories;
 	private final McmAutomationState automationState;
 	
 	public VehicleManeuverContainer(
 			@Nonnull GeoPoint currentPoint,
-			@Nonnull Set<McmTrajectory> mcmTrajectories,
+			@Nonnull List<McmTrajectory> mcmTrajectories) {
+		this.currentPoint = currentPoint;
+		this.mcmTrajectories = mcmTrajectories;
+		this.automationState = new McmAutomationState(false, false);
+	}
+	
+	public VehicleManeuverContainer(
+			@Nonnull GeoPoint currentPoint,
+			@Nonnull List<McmTrajectory> mcmTrajectories,
 			McmAutomationState automationState) {
 		this.currentPoint = currentPoint;
 		this.mcmTrajectories = mcmTrajectories;
@@ -38,7 +46,7 @@ public class VehicleManeuverContainer implements ToDataOutput, Serializable {
 	}
 	
 	public VehicleManeuverContainer(DataInput in) throws IOException {
-		this.mcmTrajectories = new HashSet<McmTrajectory>();
+		this.mcmTrajectories = new ArrayList<McmTrajectory>();
 		this.currentPoint = SerializationUtils.decodeGeoPoint(in);
 		int size = in.readInt();
 		for (int i = 0; i < size; i++) {
@@ -51,7 +59,7 @@ public class VehicleManeuverContainer implements ToDataOutput, Serializable {
 		return currentPoint;
 	}
 	
-	public Set<McmTrajectory> getMcmTrajectories() {
+	public List<McmTrajectory> getMcmTrajectories() {
 		return mcmTrajectories;
 	}
 	

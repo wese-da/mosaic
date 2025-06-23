@@ -20,28 +20,29 @@ public class Trajectory implements ToDataOutput, Serializable {
 	 * 
 	 */
 	private static final long serialVersionUID = -7178950715700996682L;
-	private List<IntermediatePointLane> intermediatePoints;
+	
+	private List<IntermediatePoint> intermediatePoints;
 
-	public Trajectory(List<IntermediatePointLane> intermediatePoints) {
+	public Trajectory(List<IntermediatePoint> intermediatePoints) {
 		this.intermediatePoints = intermediatePoints;
 	}
 	
 	public Trajectory(DataInput in) throws IOException {
-		intermediatePoints = new ArrayList<IntermediatePointLane>();
+		intermediatePoints = new ArrayList<IntermediatePoint>();
 		int size = in.readInt();
 		for (int i = 0; i < size; i++) {
 			intermediatePoints.add(new IntermediatePointLane(in));
 		}
 	}
 	
-	public List<IntermediatePointLane> getIntermediatePoints() {
+	public List<IntermediatePoint> getIntermediatePoints() {
 		return intermediatePoints;
 	}
 
 	@Override
 	public void toDataOutput(DataOutput dataOutput) throws IOException {
 		dataOutput.writeInt(intermediatePoints.size());
-		for (IntermediatePointLane ipl : intermediatePoints) {
+		for (IntermediatePoint ipl : intermediatePoints) {
 			ipl.toDataOutput(dataOutput);
 		}
 	}

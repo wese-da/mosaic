@@ -7,7 +7,7 @@ import java.io.Serializable;
 
 import org.eclipse.mosaic.lib.objects.ToDataOutput;
 
-public class IntermediatePointLane implements ToDataOutput, Serializable {
+public class IntermediatePointLane implements IntermediatePoint {
 
 	/**
 	 * 

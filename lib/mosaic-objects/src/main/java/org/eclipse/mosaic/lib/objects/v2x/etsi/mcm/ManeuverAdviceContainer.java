@@ -1,6 +1,43 @@
 package org.eclipse.mosaic.lib.objects.v2x.etsi.mcm;
 
-public class ManeuverAdviceContainer {
+import java.io.DataInput;
+import java.io.DataOutput;
+import java.io.IOException;
+import java.io.Serializable;
+import java.util.HashSet;
+import java.util.Set;
+
+import javax.annotation.Nonnull;
+
+import org.eclipse.mosaic.lib.objects.ToDataOutput;
+
+public class ManeuverAdviceContainer implements ToDataOutput, Serializable {
+	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	Set<Maneuver> maneuvers;
+	
+	public ManeuverAdviceContainer(@Nonnull Set<Maneuver> maneuvers) {
+		this.maneuvers = maneuvers;
+	}
+	
+	public ManeuverAdviceContainer(DataInput in) throws IOException {
+		maneuvers = new HashSet<Maneuver>();
+		int size = in.readInt();
+		for (int i = 0; i < size; i++) {
+			maneuvers.add(new Maneuver(in));
+		}
+	}
+
+	@Override
+	public void toDataOutput(DataOutput dataOutput) throws IOException {
+		dataOutput.writeInt(maneuvers.size());
+		for (Maneuver m : maneuvers) {
+			m.toDataOutput(dataOutput);
+		}
+	}
 
 	/*
 	 * 
@@ -8,11 +45,11 @@ public class ManeuverAdviceContainer {
 	 * 
 	 * Manoeuvre ::= SEQUENCE
 	 * 	manoeuvreID INTEGER(0..655335)
-	 * executantID StationID
-	 * executantPosition ReferencePosition
-	 * executantHeading Heading
-	 * trajectory Trajectory
-	 * automationAdvice McmAutomationState OPTIONAL
+	 *  executantID StationID
+	 *  executantPosition ReferencePosition
+	 *  executantHeading Heading
+	 *  trajectory Trajectory
+	 *  automationAdvice McmAutomationState OPTIONAL
 	 * 
 	 * Trajectory ::= SEQUENCE
 	 *  intermediatePoints SEQUENCE SIZE(1..10) OF IntermediatePoint
