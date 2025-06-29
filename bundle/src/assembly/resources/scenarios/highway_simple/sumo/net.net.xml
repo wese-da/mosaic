@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- generated on 2025-06-27 13:34:48 by Eclipse SUMO netedit Version 1.19.0
+<configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/neteditConfiguration.xsd">
+
+    <input>
+        <sumo-net-file value="C:\Users\Daniel\work\git\scenario-convert-25.0\scenarios\highway_simple\net.net.xml"/>
+    </input>
+
+    <output>
+        <output-file value="C:\Users\Daniel\work\git\scenario-convert-25.0\scenarios\highway_simple\net.net.xml"/>
+    </output>
+
+    <projection>
+        <simple-projection value="true"/>
+        <proj.utm value="true"/>
+    </projection>
+
+    <processing>
+        <geometry.min-radius.fix.railways value="false"/>
+        <geometry.max-grade.fix value="false"/>
+        <offset.disable-normalization value="true"/>
+        <lefthand value="0"/>
+    </processing>
+
+    <junctions>
+        <no-turnarounds value="true"/>
+        <junctions.corner-detail value="5"/>
+        <junctions.limit-turn-speed value="5.50"/>
+        <rectangular-lane-cut value="0"/>
+    </junctions>
+
+    <pedestrian>
+        <walkingareas value="0"/>
+    </pedestrian>
+
+</configuration>
+-->
+
+<net version="1.16" junctionCornerDetail="5" limitTurnSpeed="5.50" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/net_file.xsd">
+
+    <location netOffset="0.00,0.00" convBoundary="0.00,0.00,2000.00,0.00" origBoundary="-10000000000.00,-10000000000.00,10000000000.00,10000000000.00" projParameter="+proj=utm +zone=33  +ellps=WGS84 +datum=WGS84 +units=m +no_defs"/>
+
+    <edge id=":1_0" function="internal">
+        <lane id=":1_0_0" index="0" speed="22.22" length="0.10" shape="1000.00,-8.00 1000.00,-8.00"/>
+        <lane id=":1_0_1" index="1" speed="22.22" length="0.10" shape="1000.00,-4.80 1000.00,-4.80"/>
+        <lane id=":1_0_2" index="2" speed="22.22" length="0.10" shape="1000.00,-1.60 1000.00,-1.60"/>
+    </edge>
+
+    <edge id="01" from="0" to="1" priority="-1">
+        <lane id="01_0" index="0" speed="22.22" length="1000.00" shape="0.00,-8.00 1000.00,-8.00"/>
+        <lane id="01_1" index="1" speed="22.22" length="1000.00" shape="0.00,-4.80 1000.00,-4.80"/>
+        <lane id="01_2" index="2" speed="22.22" length="1000.00" shape="0.00,-1.60 1000.00,-1.60"/>
+    </edge>
+    <edge id="12" from="1" to="2" priority="-1">
+        <lane id="12_0" index="0" speed="22.22" length="1000.00" shape="1000.00,-8.00 2000.00,-8.00"/>
+        <lane id="12_1" index="1" speed="22.22" length="1000.00" shape="1000.00,-4.80 2000.00,-4.80"/>
+        <lane id="12_2" index="2" speed="22.22" length="1000.00" shape="1000.00,-1.60 2000.00,-1.60"/>
+    </edge>
+
+    <junction id="0" type="dead_end" x="0.00" y="0.00" incLanes="" intLanes="" shape="0.00,0.00 0.00,-9.60"/>
+    <junction id="1" type="priority" x="1000.00" y="0.00" incLanes="01_0 01_1 01_2" intLanes=":1_0_0 :1_0_1 :1_0_2" shape="1000.00,0.00 1000.00,-9.60 1000.00,0.00">
+        <request index="0" response="000" foes="000" cont="0"/>
+        <request index="1" response="000" foes="000" cont="0"/>
+        <request index="2" response="000" foes="000" cont="0"/>
+    </junction>
+    <junction id="2" type="dead_end" x="2000.00" y="0.00" incLanes="12_0 12_1 12_2" intLanes="" shape="2000.00,-9.60 2000.00,0.00"/>
+
+    <connection from="01" to="12" fromLane="0" toLane="0" via=":1_0_0" dir="s" state="M"/>
+    <connection from="01" to="12" fromLane="1" toLane="1" via=":1_0_1" dir="s" state="M"/>
+    <connection from="01" to="12" fromLane="2" toLane="2" via=":1_0_2" dir="s" state="M"/>
+
+    <connection from=":1_0" to="12" fromLane="0" toLane="0" dir="s" state="M"/>
+    <connection from=":1_0" to="12" fromLane="1" toLane="1" dir="s" state="M"/>
+    <connection from=":1_0" to="12" fromLane="2" toLane="2" dir="s" state="M"/>
+
+</net>

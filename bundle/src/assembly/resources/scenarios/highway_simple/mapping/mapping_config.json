@@ -1,0 +1,89 @@
+{
+  "prototypes": [
+    {
+      "name": "legacy",
+      "length": "4.0 m",
+      "minGap": "2.5 m",
+      "maxSpeed": "120.0 m/s",
+      "vehicleClass": "Car",
+      "accel": 2.6,
+      "decel": 4.5,
+      "sigma": 0.5,
+      "tau": 1.0,
+      "speedFactor": 1.0,
+      "deviations": {
+        "length": 0.0,
+        "width": 0.0,
+        "height": 0.0,
+        "minGap": 0.0,
+        "maxSpeed": 0.0,
+        "speedFactor": 0.1,
+        "accel": 0.0,
+        "decel": 0.0,
+        "tau": 0.0
+      }
+    },
+    {
+      "name": "connected",
+      "length": "4.0 m",
+      "minGap": "2.5 m",
+      "maxSpeed": "120.0 m/s",
+      "vehicleClass": "Car",
+      "accel": 2.6,
+      "decel": 4.5,
+      "sigma": 0.5,
+      "tau": 1.0,
+      "speedFactor": 1.0,
+      "deviations": {
+        "length": 0.0,
+        "width": 0.0,
+        "height": 0.0,
+        "minGap": 0.0,
+        "maxSpeed": 0.0,
+        "speedFactor": 0.1,
+        "accel": 0.0,
+        "decel": 0.0,
+        "tau": 0.0
+      },
+	  "applications" : ["org.eclipse.mosaic.app.ts.kosnet_applications.mcs.StatusSharingVehicleApplication(false)"]
+    }
+  ],
+  "vehicles": [
+  {
+      "startingTime": "0 s",
+      "maxTime": "10 s",
+      "targetFlow": 5.0,
+      "spawningMode": "CONSTANT",
+	  "departSpeedMode" : "MAXIMUM",
+      "maxNumberVehicles": 2,
+	  "lanes" : [1],
+      "types": [
+        {
+          "name": "connected",
+          "weight": 1
+        }
+      ],
+      "departConnectionIndex": 0,
+      "pos": 0,
+      "route": "0"
+    },
+	{
+      "startingTime": "0 s",
+      "maxTime": "10 s",
+      "targetFlow": 1.0,
+      "spawningMode": "CONSTANT",
+	  "departSpeedMode" : "MAXIMUM",
+      "maxNumberVehicles": 1,
+	  "lanes" : [0],
+      "types": [
+        {
+          "name": "connected",
+          "weight": 1
+        }
+      ],
+      "departConnectionIndex": 0,
+      "pos": 0,
+      "route": "0"
+    }
+	]
+}
