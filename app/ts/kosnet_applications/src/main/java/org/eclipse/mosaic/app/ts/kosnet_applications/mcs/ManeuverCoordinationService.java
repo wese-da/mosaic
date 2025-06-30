@@ -79,9 +79,8 @@ public abstract class ManeuverCoordinationService extends AbstractApplication<Ve
 		getOperatingSystem().getAdHocModule().sendCam();
 	}
 	
-	protected void shareIntent() {
-		Mcm message = assembleMessage();
-		getOperatingSystem().getAdHocModule().sendV2xMessage(message);
+	protected Mcm constructReferenceTrajectory() {
+		return assembleMessage();
 	}
 
 	protected Mcm assembleMessage() {

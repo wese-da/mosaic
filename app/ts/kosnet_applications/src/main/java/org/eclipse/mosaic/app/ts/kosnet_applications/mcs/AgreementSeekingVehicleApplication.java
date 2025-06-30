@@ -39,7 +39,7 @@ public class AgreementSeekingVehicleApplication extends ManeuverCoordinationServ
 	@Override
 	public void processEvent(Event event) throws Exception {
 		shareStatus();
-		shareIntent();
+		Mcm mcm = constructReferenceTrajectory();
 		getOperatingSystem().getEventManager().addEvent(new Event(getOperatingSystem().getSimulationTime() + TIME.SECOND, this));
 	}
 

@@ -27,7 +27,7 @@ public class IntentSharingVehicleApplication extends ManeuverCoordinationService
 	@Override
 	public void processEvent(Event event) throws Exception {
 		shareStatus();
-		shareIntent();
+		getOperatingSystem().getAdHocModule().sendV2xMessage(constructReferenceTrajectory());
 		getOperatingSystem().getEventManager().addEvent(new Event(getOperatingSystem().getSimulationTime() + TIME.SECOND, this));
 	}
 
