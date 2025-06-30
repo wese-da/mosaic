@@ -40,6 +40,7 @@ public class AgreementSeekingVehicleApplication extends ManeuverCoordinationServ
 	public void processEvent(Event event) throws Exception {
 		shareStatus();
 		Mcm mcm = constructReferenceTrajectory();
+		getOperatingSystem().getAdHocModule().sendV2xMessage(mcm);
 		getOperatingSystem().getEventManager().addEvent(new Event(getOperatingSystem().getSimulationTime() + TIME.SECOND, this));
 	}
 
