@@ -6,6 +6,7 @@
       "minGap": "2.5 m",
       "maxSpeed": "120.0 m/s",
       "vehicleClass": "Car",
+	  "color" : "blue",
       "accel": 2.6,
       "decel": 4.5,
       "sigma": 0.5,
@@ -29,6 +30,8 @@
       "minGap": "2.5 m",
       "maxSpeed": "120.0 m/s",
       "vehicleClass": "Car",
+	  "laneChangeMode" : "OFF",
+	  "color" : "green",
       "accel": 2.6,
       "decel": 4.5,
       "sigma": 0.5,
@@ -51,35 +54,21 @@
   "vehicles": [
   {
       "startingTime": "0 s",
-      "maxTime": "10 s",
-      "targetFlow": 5.0,
-      "spawningMode": "CONSTANT",
+      "maxTime": "1000 s",
+      "targetFlow": 2000.0,
+      "spawningMode": "POISSON",
 	  "departSpeedMode" : "MAXIMUM",
-      "maxNumberVehicles": 2,
-	  "lanes" : [1],
+      "maxNumberVehicles": 2000,
+	  "lanes" : [0,1,2],
       "types": [
         {
           "name": "connected",
-          "weight": 1
-        }
-      ],
-      "departConnectionIndex": 0,
-      "pos": 0,
-      "route": "0"
-    },
-	{
-      "startingTime": "0 s",
-      "maxTime": "10 s",
-      "targetFlow": 1.0,
-      "spawningMode": "CONSTANT",
-	  "departSpeedMode" : "MAXIMUM",
-      "maxNumberVehicles": 1,
-	  "lanes" : [0],
-      "types": [
-        {
-          "name": "connected",
-          "weight": 1
-        }
+          "weight": 0.2
+        },
+		{
+			"name" : "legacy",
+			"weight" : 0.8
+		}
       ],
       "departConnectionIndex": 0,
       "pos": 0,
