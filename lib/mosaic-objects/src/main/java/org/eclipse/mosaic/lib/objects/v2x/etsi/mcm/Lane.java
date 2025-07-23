@@ -68,5 +68,12 @@ public class Lane implements ToDataOutput, Serializable {
 		dataOutput.writeInt(laneCount);
 		dataOutput.writeInt(laneIndex);
 	}
+
+	public int getLaneIndex(){return laneIndex;}
+
+	public String toString(){
+		return "||" + this.laneIndex + "|" + this.lanePosition + "||";
+
+	}
 	
 }
