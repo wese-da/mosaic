@@ -31,7 +31,7 @@ public class Mcm extends V2xMessage {
 
 	private static final long serialVersionUID = 7289489801013027657L;
 	
-	public static final long MCM_HORIZON = 30 * TIME.SECOND;
+	public static final long MCM_HORIZON = 5 * TIME.SECOND;
 
 	/**
      * The encoded message.
