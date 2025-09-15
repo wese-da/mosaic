@@ -42,6 +42,8 @@ public class AgreementSeekingVehicleApplication extends ManeuverCoordinationServ
 	
 	private McmTrajectory targetTrajectory;
 
+	private String vehicleRole; // "subject" or "target" or "none"
+
 	public AgreementSeekingVehicleApplication(boolean useCells) {
 		super(useCells);
 	}
@@ -49,17 +51,21 @@ public class AgreementSeekingVehicleApplication extends ManeuverCoordinationServ
 	@Override
 	public void processEvent(Event event) throws Exception {
 		shareStatus();
-		Mcm mcm = constructReferenceTrajectory();
 		
 		// Request lane change for all connected vehicles driving on rightmost lane to the lane to the left
 		int laneIndex = getOperatingSystem().getNavigationModule().getRoadPosition().getLaneIndex();
-		if (laneIndex == 0) {
+		//if (laneIndex == 0) {
+			Mcm mcm = constructReferenceTrajectory();
 			// TODO construct requested trajectory
 			this.targetTrajectory = new McmTrajectory(1, new Trajectory(new ArrayList<IntermediatePoint>()), McmCategoryType.COOPERATION_OFFER, new CooperationCost(1.0f));
 			mcm.getContent().getVehicleManeuverContainer().getMcmTrajectories().add(this.targetTrajectory);
-		} else {
+		//} else {
 			// Is there a nearby vehicle that requests cooperation?
-		}
+		//}
+
+		double distance = getOperatingSystem().getNavigationModule().getNextJunctionNode().getPosition().distanceTo(getOperatingSystem().getPosition());
+		double drivingDur = distance / getOperatingSystem().getVehicleData().getSpeed();
+		getOperatingSystem().changeLane(laneIndex+1, (long) drivingDur);
 
 		// find and resolve conflicts with the reference trajectory
 		findAndResolveConflicts(mcm);

@@ -15,6 +15,9 @@
 
 package org.eclipse.mosaic.app.ts.kosnet_applications.mcs;
 
+import org.eclipse.mosaic.fed.application.ambassador.simulation.communication.CamBuilder;
+import org.eclipse.mosaic.fed.application.ambassador.simulation.communication.ReceivedAcknowledgement;
+import org.eclipse.mosaic.interactions.communication.V2xMessageTransmission;
 import org.eclipse.mosaic.lib.util.scheduling.Event;
 import org.eclipse.mosaic.rti.TIME;
 
@@ -30,4 +33,18 @@ public class StatusSharingVehicleApplication extends ManeuverCoordinationService
 		getOperatingSystem().getEventManager().addEvent(new Event(getOperatingSystem().getSimulationTime() + TIME.SECOND, this));
 	}
 
+	@Override
+	public void onAcknowledgementReceived(ReceivedAcknowledgement acknowledgement) {
+
+	}
+
+	@Override
+	public void onCamBuilding(CamBuilder camBuilder) {
+
+	}
+
+	@Override
+	public void onMessageTransmitted(V2xMessageTransmission v2xMessageTransmission) {
+
+	}
 }
