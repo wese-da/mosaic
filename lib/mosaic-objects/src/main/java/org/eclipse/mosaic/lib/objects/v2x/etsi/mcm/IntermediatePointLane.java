@@ -63,4 +63,14 @@ public class IntermediatePointLane implements IntermediatePoint {
 		timeOfPos.toDataOutput(dataOutput);
 	}
 	
+	@Override
+	public boolean equals(Object obj) {
+		if (obj instanceof IntermediatePointLane) {
+			IntermediatePointLane ipl = (IntermediatePointLane) obj;
+			return this.getLane().getLaneIndex() == ipl.getLane().getLaneIndex() || this.getLane().getLanePosition() == ipl.getLane().getLanePosition()
+					&& this.getLane().getLaneCount() == ipl.getLane().getLaneCount();
+		}
+		return false;
+	}
+	
 }

@@ -62,4 +62,28 @@ public class Trajectory implements ToDataOutput, Serializable {
 		}
 	}
 	
+	@Override
+	public boolean equals(Object obj) {
+		boolean equal = false;
+		if (obj instanceof Trajectory) {
+			Trajectory other = (Trajectory) obj;
+			if (other.getIntermediatePoints().size() == this.getIntermediatePoints().size()) {
+				int i = 0;
+				while (i < this.intermediatePoints.size()) {
+					IntermediatePointLane p1 = (IntermediatePointLane) this.getIntermediatePoints().get(i);
+					IntermediatePointLane p2 = (IntermediatePointLane) other.getIntermediatePoints().get(i);
+					if (!p1.equals(p2)) {
+						break;
+					}
+					i++;
+				}
+				if (i == this.intermediatePoints.size()) {
+					equal = true;
+				}
+			}
+		}
+		
+		return equal;
+	}
+	
 }
