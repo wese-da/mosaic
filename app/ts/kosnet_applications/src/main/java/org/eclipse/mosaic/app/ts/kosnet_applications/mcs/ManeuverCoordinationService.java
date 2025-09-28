@@ -19,10 +19,13 @@ import java.sql.Time;
 import java.util.*;
 
 import org.eclipse.mosaic.fed.application.ambassador.simulation.communication.AdHocModuleConfiguration;
+import org.eclipse.mosaic.fed.application.ambassador.simulation.communication.CamBuilder;
+import org.eclipse.mosaic.fed.application.ambassador.simulation.communication.ReceivedAcknowledgement;
 import org.eclipse.mosaic.fed.application.ambassador.simulation.communication.ReceivedV2xMessage;
 import org.eclipse.mosaic.fed.application.app.AbstractApplication;
 import org.eclipse.mosaic.fed.application.app.api.CommunicationApplication;
 import org.eclipse.mosaic.fed.application.app.api.os.VehicleOperatingSystem;
+import org.eclipse.mosaic.interactions.communication.V2xMessageTransmission;
 import org.eclipse.mosaic.lib.enums.AdHocChannel;
 import org.eclipse.mosaic.lib.geo.GeoPoint;
 import org.eclipse.mosaic.lib.objects.road.IConnection;
@@ -45,7 +48,7 @@ import org.eclipse.mosaic.lib.objects.v2x.etsi.mcm.VehicleManeuverContainer;
 import org.eclipse.mosaic.lib.util.scheduling.Event;
 import org.eclipse.mosaic.rti.TIME;
 
-public abstract class ManeuverCoordinationService extends AbstractApplication<VehicleOperatingSystem> implements CommunicationApplication {
+public class ManeuverCoordinationService extends AbstractApplication<VehicleOperatingSystem> implements CommunicationApplication {
 
 	private final boolean useCells;
 	
@@ -58,11 +61,9 @@ public abstract class ManeuverCoordinationService extends AbstractApplication<Ve
 	private Map<String, VehicleInfo> otherVehicleInfo = new HashMap<>();
 
 	private McmTrajectory currentTrajectory;
-	private List<IntermediatePointLane> detectedConflikts = new ArrayList<IntermediatePointLane>();
 	private McmTrajectory targetTrajectory;
 	private boolean laneChangehasHappened = false;
 	private String vehicleRole = "none";
-	private int cooperationRequestId;
 	
 	@Override
 	public void onStartup() {
@@ -128,16 +129,15 @@ public abstract class ManeuverCoordinationService extends AbstractApplication<Ve
 
 	protected Mcm assembleMessage() {
 		// vehicle maneuver container
-		List<McmTrajectory> mcmTrajectories = new ArrayList<McmTrajectory>();
+		List<McmTrajectory> mcmTrajectories = new ArrayList<>();
 		mcmTrajectories.add(assembleCurrentTrajectory());
 		VehicleManeuverContainer vmc = new VehicleManeuverContainer(getOperatingSystem().getPosition(), mcmTrajectories);
 		// maneuver advice container
-		Set<Maneuver> maneuvers = new HashSet<Maneuver>();
+		Set<Maneuver> maneuvers = new HashSet<>();
 		ManeuverAdviceContainer mac = new ManeuverAdviceContainer(maneuvers);
 		// content
 		McmContent content = new McmContent(getOperatingSystem().getSimulationTime(), vmc, mac);
-		Mcm mcm = new Mcm(getOperatingSystem().getAdHocModule().createMessageRouting().topoBroadCast(), content, 200);
-		return mcm;
+		return new Mcm(getOperatingSystem().getAdHocModule().createMessageRouting().topoBroadCast(), content, 200);
 	}
 	
 	private McmTrajectory assembleCurrentTrajectory() {
@@ -146,11 +146,10 @@ public abstract class ManeuverCoordinationService extends AbstractApplication<Ve
 		int startIdx = edgeIds.indexOf(getOperatingSystem().getNavigationModule().getRoadPosition().getConnectionId());
 		
 		double currentSpeed = getOperatingSystem().getVehicleData().getSpeed();
-		double accelerationTime = Math.max(13.89 - currentSpeed, accelTime(13.89, currentSpeed)); // TODO
 		
 		double length = -posFromCurrentEdgeStart;
 		double currentPos = posFromCurrentEdgeStart;
-		List<IntermediatePoint> ipl = new ArrayList<IntermediatePoint>();
+		List<IntermediatePoint> ipl = new ArrayList<>();
 
 		double timeIntervall = 1 / (double) 10;
 
@@ -166,31 +165,27 @@ public abstract class ManeuverCoordinationService extends AbstractApplication<Ve
 				distanceCovered += currentSpeed * timeIntervall;
 
 				if (length / currentSpeed >= Mcm.MCM_HORIZON / (double) TIME.SECOND) { //bricht zu früh ab -> alle Trajektorien haben Länge < 50
-					//System.out.println(length/currentSpeed);
 					break;
 				}
 				length += distanceCovered;
 			}
 
-			//length += current.getLength();
 			currentPos = 0;
 		}
 
-		//System.out.println(ipl.size());
 		Trajectory trajectory = new Trajectory(ipl);
 		CooperationCost cost = new CooperationCost(0.0f);
 		McmTrajectory current = new McmTrajectory(0, trajectory, McmCategoryType.NONE, cost);
 
-		//return is a bit irrelavant -> maybe delete the return and change the code accordingly
+		//return is a bit irrelevant -> maybe delete the return and change the code accordingly
 		this.currentTrajectory = current;
-		this.detectedConflikts = findPotentialConflicts(this.currentTrajectory.getTrajectory().getIntermediatePoints());
 		return current;
 	}
 
 	public List<IntermediatePointLane> findPotentialConflicts(List<IntermediatePoint> currentPoints){
 
-		List<IntermediatePointLane> conflicts = new ArrayList<IntermediatePointLane>();
-		List<Integer> laneSwitcheIndices = new ArrayList<Integer>();
+		List<IntermediatePointLane> conflicts = new ArrayList<>();
+		List<Integer> laneSwitcheIndices = new ArrayList<>();
 		int previousIndex = 0;
 
 		int indexLaneSwitches = 0;
@@ -199,28 +194,24 @@ public abstract class ManeuverCoordinationService extends AbstractApplication<Ve
 
 				IntermediatePointLane lanePoint = (IntermediatePointLane) interPoint;
 				int currentIndex = lanePoint.getLane().getLaneIndex();
-				if (currentIndex != previousIndex){//previousLanePoint.getLane().getLaneIndex()){
-					//previousLanePoint = lanePoint;
+				if (currentIndex != previousIndex){
 					previousIndex = currentIndex;
-					//laneSwitches.add(previousLanePoint);
-					laneSwitcheIndices.add(indexLaneSwitches);//-1);
+					laneSwitcheIndices.add(indexLaneSwitches);
 				}
 			}
 			indexLaneSwitches++;
 		}
 
-		//System.out.println("here happened");
 		for (int index : laneSwitcheIndices){
 			IntermediatePointLane egoPoint = (IntermediatePointLane) currentPoints.get(index);
 			int egoLaneIndex = egoPoint.getLane().getLaneIndex();
 			double egoLanePosition = egoPoint.getLane().getLanePosition();
 			for (Map.Entry<String, VehicleInfo> vehEntry : this.otherVehicleInfo.entrySet()) {
 				if (vehEntry.getValue().getTrajectory() != null) {
-					IntermediatePointLane otherPoint = (IntermediatePointLane) vehEntry.getValue().getTrajectory().getIntermediatePoints().get(index);    //get trajektorie returns null
+					IntermediatePointLane otherPoint = (IntermediatePointLane) vehEntry.getValue().getTrajectory().getIntermediatePoints().get(index);
 					if (egoLaneIndex == otherPoint.getLane().getLaneIndex()) {
 						double otherPosition = otherPoint.getLane().getLanePosition();
 						if (egoLanePosition > (otherPosition - 25) && egoLanePosition < (otherPosition + 25)) {
-							//System.out.println("ego: " + egoLanePosition + "|" + "other: " + otherPosition);
 							conflicts.add(egoPoint);
 						}
 					}
@@ -232,21 +223,20 @@ public abstract class ManeuverCoordinationService extends AbstractApplication<Ve
 	}
 
 	public List<IntermediatePointLane> findConflictsBetweenTwoTrajectories(Trajectory trajectory1, Trajectory trajectory2){
-		//Konflikte zwischen zwei Trajektorien finden um Konflikte zwischen subject und target herauszufinden -> wenn konflikt abbremsen, wenn nicht Spurwechseln
-		//noch Liste mit allen empfangenen Cams, nach Abstand sortiert muss implementiert werden -> vielleicht sortiertes dictionary verwenden
-
-		List<IntermediatePointLane> conflicts = new ArrayList<IntermediatePointLane>();
+		List<IntermediatePointLane> conflicts = new ArrayList<>();
 		List<IntermediatePoint> pointsTrajectory1 = trajectory1.getIntermediatePoints();
 		List<IntermediatePoint> pointsTrajectory2 = trajectory2.getIntermediatePoints();
 
-		for (int i = 0; i < trajectory1.getIntermediatePoints().size(); i++){
-			if (pointsTrajectory1.get(i) instanceof IntermediatePointLane && pointsTrajectory2.get(i) instanceof IntermediatePointLane){
-				IntermediatePointLane pointTrajektorie1 = (IntermediatePointLane) pointsTrajectory1.get(i);
-				IntermediatePointLane pointTrajektorie2 = (IntermediatePointLane) pointsTrajectory2.get(i);
+		for (int i = 0; i < pointsTrajectory1.size(); i++){
+			if (i < pointsTrajectory2.size()){		//this if fixes the problem of Trajectories with a different amount of points
+				if (pointsTrajectory1.get(i) instanceof IntermediatePointLane && pointsTrajectory2.get(i) instanceof IntermediatePointLane){
+					IntermediatePointLane pointTrajektorie1 = (IntermediatePointLane) pointsTrajectory1.get(i);
+					IntermediatePointLane pointTrajektorie2 = (IntermediatePointLane) pointsTrajectory2.get(i);
 
-				if (pointTrajektorie1.getLane().getLaneIndex() == pointTrajektorie2.getLane().getLaneIndex()){
-					if (pointTrajektorie1.getLane().getLanePosition() > (pointTrajektorie2.getLane().getLanePosition() - 25) && pointTrajektorie1.getLane().getLanePosition() < (pointTrajektorie2.getLane().getLanePosition() + 25)){
-						conflicts.add(pointTrajektorie1);
+					if (pointTrajektorie1.getLane().getLaneIndex() == pointTrajektorie2.getLane().getLaneIndex()){
+						if (pointTrajektorie1.getLane().getLanePosition() > (pointTrajektorie2.getLane().getLanePosition() - 25) && pointTrajektorie1.getLane().getLanePosition() < (pointTrajektorie2.getLane().getLanePosition() + 25)){
+							conflicts.add(pointTrajektorie1);
+						}
 					}
 				}
 			}
@@ -269,10 +259,8 @@ public abstract class ManeuverCoordinationService extends AbstractApplication<Ve
 			if (distance <= 50) {
 				VehicleAwarenessData vehicleAwarenessData = (VehicleAwarenessData) camMessage.getAwarenessData();
 				double vehicleSpeed = vehicleAwarenessData.getSpeed();
-				//Berechnung der Entfernung von Fahrzeug, welches die CAM ausgesendet hat, zum ego-Vehicle
-				GeoPoint camPosition = camMessage.getPosition();
-				GeoPoint egoPosition = getOperatingSystem().getPosition();
 
+				GeoPoint camPosition = camMessage.getPosition();
 				//negative distance -> ego vehicle in front of other vehicle -> needs to be checked for conflicts
 				double distanceToEgo;
 				if (xPosSelf >= xPosRecived){
@@ -287,8 +275,6 @@ public abstract class ManeuverCoordinationService extends AbstractApplication<Ve
 
 		if (receivedV2xMessage.getMessage() instanceof Mcm){
 			Mcm mcmMessage = (Mcm) receivedV2xMessage.getMessage();
-//			mcmMessage.getRouting().getSource().getSourceName(); -> id des Fahrzeugs aus Mcms
-//			getOperatingSystem().getAdHocModule().sendV2xMessage();
 
 			//filetring for mcm with request Trajektories, or answer to reques trajektorie (has more than one Trajektorie)
 			if (mcmMessage.getContent().getVehicleManeuverContainer().getMcmTrajectories().size() > 1){
@@ -296,29 +282,26 @@ public abstract class ManeuverCoordinationService extends AbstractApplication<Ve
 					//if vehicle is already in cooperation -> decline cooperation, else set vehicleRole to in cooperation and proceed to check for Conflicts
 					if (vehicleRole.equals("none")){
 						System.out.println("vehicle set to target");
-						//do cooperation stuff
 						vehicleRole = "target";
 						Trajectory requestedTrajectory = mcmMessage.getContent().getVehicleManeuverContainer().getMcmTrajectories().get(1).getTrajectory();
-						//List<IntermediatePointLane> conflicts = findPotentialConflicts(requestedTrajectory.getIntermediatePoints());
 						List<IntermediatePointLane> conflicts = findConflictsBetweenTwoTrajectories(assembleCurrentTrajectory().getTrajectory(), requestedTrajectory);
-						//if there are conflicts -> slow down
+						//if there are conflicts -> slow down (maybe constant value, maybe value relative to current speed)
 						if (!conflicts.isEmpty()){
 							getOperatingSystem().slowDown(13,10);
 						}
 
 						//to accept Trajectory -> send mcm Message with same Trajectories, but with McmCategoryType COOPERATION_ACCEPT (subject vehicle saves requested trajectories)
 						List<McmTrajectory> messageTrajectories = mcmMessage.getContent().getVehicleManeuverContainer().getMcmTrajectories();
-						List<McmTrajectory> responseTrajectories = new ArrayList<McmTrajectory>();
+						List<McmTrajectory> responseTrajectories = new ArrayList<>();
 
 						responseTrajectories.add(new McmTrajectory(1, messageTrajectories.get(0).getTrajectory(), McmCategoryType.NONE, new CooperationCost(0.0f)));
 						responseTrajectories.add(new McmTrajectory(1, messageTrajectories.get(1).getTrajectory(), McmCategoryType.COOPERATION_ACCEPTANCE, new CooperationCost(0.0f)));
 
 						VehicleManeuverContainer vmcResponse = new VehicleManeuverContainer(getOperatingSystem().getPosition(), responseTrajectories);
-						Set<Maneuver> maneuvers = new HashSet<Maneuver>();
+						Set<Maneuver> maneuvers = new HashSet<>();
 						ManeuverAdviceContainer macResponse = new ManeuverAdviceContainer(maneuvers);
 
 						McmContent responseContent = new McmContent(getOperatingSystem().getSimulationTime(), vmcResponse, macResponse);
-						//Mcm response = new Mcm(getOperatingSystem().getAdHocModule().createMessageRouting().topoCast()topoBroadCast(), responseContent, 200); <-- für directes nachrichten senden an fahrzeug mit bestimmter id
 						Mcm response = new Mcm(getOperatingSystem().getAdHocModule().createMessageRouting().topoBroadCast(), responseContent, 200);
 						getOperatingSystem().getAdHocModule().sendV2xMessage(response);
 
@@ -326,13 +309,13 @@ public abstract class ManeuverCoordinationService extends AbstractApplication<Ve
 						//send the decline of the cooperation -> send mcm Message with same trajectories but with category Type cooperation decline
 
 						List<McmTrajectory> messageTrajectories = mcmMessage.getContent().getVehicleManeuverContainer().getMcmTrajectories();
-						List<McmTrajectory> responseTrajectories = new ArrayList<McmTrajectory>();
+						List<McmTrajectory> responseTrajectories = new ArrayList<>();
 
 						responseTrajectories.add(new McmTrajectory(1, messageTrajectories.get(0).getTrajectory(), McmCategoryType.NONE, new CooperationCost(0.0f)));
 						responseTrajectories.add(new McmTrajectory(1, messageTrajectories.get(1).getTrajectory(), McmCategoryType.COOPERATION_DECLINE, new CooperationCost(0.0f)));
 
 						VehicleManeuverContainer vmcResponse = new VehicleManeuverContainer(getOperatingSystem().getPosition(), responseTrajectories);
-						Set<Maneuver> maneuvers = new HashSet<Maneuver>();
+						Set<Maneuver> maneuvers = new HashSet<>();
 						ManeuverAdviceContainer macResponse = new ManeuverAdviceContainer(maneuvers);
 
 						McmContent responseContent = new McmContent(getOperatingSystem().getSimulationTime(), vmcResponse, macResponse);
@@ -340,11 +323,15 @@ public abstract class ManeuverCoordinationService extends AbstractApplication<Ve
 						getOperatingSystem().getAdHocModule().sendV2xMessage(response);
 					}
 				}
-				//if vehicle has send cooperation request -> waits for response
+				//if vehicle has sent cooperation request -> waits for response
 				if (vehicleRole.equals("subject")){
 					List<McmTrajectory> trajectories = mcmMessage.getContent().getVehicleManeuverContainer().getMcmTrajectories();
 					//check if the current recived message was send by the vehicle with the closest negative distance to the ego vehicle
-					if (mcmMessage.getRouting().getSource().getSourceName().equals(getSortedOtherVehicleInfo().getFirst().getKey()))
+					if (this.otherVehicleInfo.isEmpty()){
+						this.laneChangehasHappened = false;
+						this.vehicleRole = "none";
+					}
+					else if (mcmMessage.getRouting().getSource().getSourceName().equals(getSortedOtherVehicleInfo().getFirst().getKey())) //<-- hier error, wenn keine Elemente vorhanden sind
 						if (trajectories.get(1).getTrajectory().equals(targetTrajectory.getTrajectory())){
 							//if vehicle has accepted cooperation -> change lane
 							if (trajectories.get(1).getMcmCategoryType() == McmCategoryType.COOPERATION_ACCEPTANCE){
@@ -365,25 +352,34 @@ public abstract class ManeuverCoordinationService extends AbstractApplication<Ve
 	}
 
 	@Override
+	public void onAcknowledgementReceived(ReceivedAcknowledgement acknowledgement) {
+
+	}
+
+	@Override
+	public void onCamBuilding(CamBuilder camBuilder) {
+
+	}
+
+	@Override
+	public void onMessageTransmitted(V2xMessageTransmission v2xMessageTransmission) {
+
+	}
+
+	@Override
 	public void processEvent(Event event) throws Exception {
-		System.out.println("event happened");
 		shareStatus();
 
 		// Request lane change for all connected vehicles driving on rightmost lane to the lane to the left
 		int laneIndex = getOperatingSystem().getNavigationModule().getRoadPosition().getLaneIndex();
 		//double lanePosition = getOperatingSystem().getRoadPosition().getLateralLanePosition();
-		double lanePosition = getOperatingSystem().getNavigationModule().getRoadPosition().getLateralLanePosition();
+		double lanePosition = getOperatingSystem().getNavigationModule().getRoadPosition().getOffset(); //replace getLateralLanePosition with getOffset
+		//System.out.println(lanePosition);
 
+		double startLaneChangeArea = Math.random() * (150 - 25) + 25;		//vielleicht als Klassenvariablen damit nicht bei jedem aufruf die Grenzen neu generiert werden
+		double endLaneChangeArea = Math.random() * (300 - 190) + 190;
 
-//		double startLaneChangeArea = Math.random() * (150 - 25) + 25;		//vielleicht als Klassenvariablen damit nicht bei jedem aufruf die Grenzen neu generiert werden
-//		double endLaneChangeArea = Math.random() * (300 - 190) + 190;
-
-		double startLaneChangeArea = (150 - 25) + 25;		//vielleicht als Klassenvariablen damit nicht bei jedem aufruf die Grenzen neu generiert werden
-		double endLaneChangeArea = (300 - 190) + 190;
-
-		//if (laneIndex == 0 && !laneChangehasHappened && lanePosition > startLaneChangeArea && lanePosition < endLaneChangeArea) {
-		//if (laneIndex == 1 && lanePosition > startLaneChangeArea && lanePosition < endLaneChangeArea) {
-		if (lanePosition > startLaneChangeArea && lanePosition < endLaneChangeArea) {
+		if (laneIndex == 0 && !laneChangehasHappened && lanePosition > startLaneChangeArea && lanePosition < endLaneChangeArea) {
 			if (this.vehicleRole.equals("none")){
 				System.out.println("vehicle set to subject");
 				this.vehicleRole = "subject";
@@ -393,7 +389,7 @@ public abstract class ManeuverCoordinationService extends AbstractApplication<Ve
 				Mcm mcm = constructReferenceTrajectory();
 
 				//creation of the additional target trajectorie
-				this.targetTrajectory = new McmTrajectory(1, new Trajectory(new ArrayList<IntermediatePoint>()), McmCategoryType.COOPERATION_OFFER, new CooperationCost(1.0f));
+				this.targetTrajectory = new McmTrajectory(1, new Trajectory(new ArrayList<>()), McmCategoryType.COOPERATION_OFFER, new CooperationCost(1.0f));
 				//copies the reference trajectory, but changes the lane indexes of the lane Points after the lane change (constructs reference trajectory)
 				double currentPos = getOperatingSystem().getNavigationModule().getRoadPosition().getLateralLanePosition();
 				for (IntermediatePoint ip : mcm.getContent().getVehicleManeuverContainer().getMcmTrajectories().getFirst().getTrajectory().getIntermediatePoints()){
@@ -412,9 +408,7 @@ public abstract class ManeuverCoordinationService extends AbstractApplication<Ve
 			}
 		}
 
-//		// find and resolve conflicts with the reference trajectory
-//		findAndResolveConflicts(mcm);
-//		// TODO adapt reference trajectory
+		// TODO adapt reference trajectory
 
 
 		getOperatingSystem().getEventManager().addEvent(new Event(getOperatingSystem().getSimulationTime() + TIME.SECOND, this));
