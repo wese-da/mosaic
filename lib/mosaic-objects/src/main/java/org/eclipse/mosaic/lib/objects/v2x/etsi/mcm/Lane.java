@@ -75,5 +75,9 @@ public class Lane implements ToDataOutput, Serializable {
 		return "||" + this.laneIndex + "|" + this.lanePosition + "||";
 
 	}
+
+	public void setLaneIndex(int i) {
+		this.laneIndex = i;
+	}
 	
 }

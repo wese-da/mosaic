@@ -15,8 +15,13 @@
 
 package org.eclipse.mosaic.app.ts.kosnet_applications.mcs;
 
-import java.sql.Time;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.eclipse.mosaic.fed.application.ambassador.simulation.communication.AdHocModuleConfiguration;
 import org.eclipse.mosaic.fed.application.ambassador.simulation.communication.CamBuilder;
@@ -45,6 +50,7 @@ import org.eclipse.mosaic.lib.objects.v2x.etsi.mcm.Reason;
 import org.eclipse.mosaic.lib.objects.v2x.etsi.mcm.TimeOfPos;
 import org.eclipse.mosaic.lib.objects.v2x.etsi.mcm.Trajectory;
 import org.eclipse.mosaic.lib.objects.v2x.etsi.mcm.VehicleManeuverContainer;
+import org.eclipse.mosaic.lib.objects.v2x.etsi.mcm.VehicleRole;
 import org.eclipse.mosaic.lib.util.scheduling.Event;
 import org.eclipse.mosaic.rti.TIME;
 
@@ -63,7 +69,7 @@ public class ManeuverCoordinationService extends AbstractApplication<VehicleOper
 	private McmTrajectory currentTrajectory;
 	private McmTrajectory targetTrajectory;
 	private boolean laneChangehasHappened = false;
-	private String vehicleRole = "none";
+	private VehicleRole vehicleRole = VehicleRole.NONE;
 	
 	@Override
 	public void onStartup() {
@@ -280,9 +286,9 @@ public class ManeuverCoordinationService extends AbstractApplication<VehicleOper
 			if (mcmMessage.getContent().getVehicleManeuverContainer().getMcmTrajectories().size() > 1){
 				if (mcmMessage.getContent().getVehicleManeuverContainer().getMcmTrajectories().get(1).getMcmCategoryType() == McmCategoryType.COOPERATION_OFFER){
 					//if vehicle is already in cooperation -> decline cooperation, else set vehicleRole to in cooperation and proceed to check for Conflicts
-					if (vehicleRole.equals("none")){
-						System.out.println("vehicle set to target");
-						vehicleRole = "target";
+					if (vehicleRole.equals(VehicleRole.NONE)){
+						getLog().infoSimTime(this, "vehicle set to target");
+						vehicleRole = VehicleRole.TARGET;
 						Trajectory requestedTrajectory = mcmMessage.getContent().getVehicleManeuverContainer().getMcmTrajectories().get(1).getTrajectory();
 						List<IntermediatePointLane> conflicts = findConflictsBetweenTwoTrajectories(assembleCurrentTrajectory().getTrajectory(), requestedTrajectory);
 						//if there are conflicts -> slow down (maybe constant value, maybe value relative to current speed)
@@ -324,19 +330,19 @@ public class ManeuverCoordinationService extends AbstractApplication<VehicleOper
 					}
 				}
 				//if vehicle has sent cooperation request -> waits for response
-				if (vehicleRole.equals("subject")){
+				if (vehicleRole.equals(VehicleRole.SUBJECT)){
 					List<McmTrajectory> trajectories = mcmMessage.getContent().getVehicleManeuverContainer().getMcmTrajectories();
 					//check if the current recived message was send by the vehicle with the closest negative distance to the ego vehicle
 					if (this.otherVehicleInfo.isEmpty()){
 						this.laneChangehasHappened = false;
-						this.vehicleRole = "none";
+						this.vehicleRole = VehicleRole.NONE;
 					}
 					else if (mcmMessage.getRouting().getSource().getSourceName().equals(getSortedOtherVehicleInfo().getFirst().getKey())) //<-- hier error, wenn keine Elemente vorhanden sind
 						if (trajectories.get(1).getTrajectory().equals(targetTrajectory.getTrajectory())){
 							//if vehicle has accepted cooperation -> change lane
 							if (trajectories.get(1).getMcmCategoryType() == McmCategoryType.COOPERATION_ACCEPTANCE){
 								getOperatingSystem().changeLane(1, 1000);
-								System.out.println("MCM lanechange happened");
+								getLog().infoSimTime(this, "MCM lanechange happened");
 							}
 					}
 				}
@@ -380,9 +386,9 @@ public class ManeuverCoordinationService extends AbstractApplication<VehicleOper
 		double endLaneChangeArea = Math.random() * (300 - 190) + 190;
 
 		if (laneIndex == 0 && !laneChangehasHappened && lanePosition > startLaneChangeArea && lanePosition < endLaneChangeArea) {
-			if (this.vehicleRole.equals("none")){
-				System.out.println("vehicle set to subject");
-				this.vehicleRole = "subject";
+			if (this.vehicleRole.equals(VehicleRole.NONE)){
+				getLog().infoSimTime(this, "vehicle set to subject");
+				this.vehicleRole = VehicleRole.SUBJECT;
 
 				this.laneChangehasHappened = true;
 				// TODO construct requested trajectory
