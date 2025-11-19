@@ -31,13 +31,6 @@
         	<artifactId>mosaic-geomath</artifactId>
         	<version>${mosaic.version}</version>
         </dependency>
-        <!--<dependency>
-		    <groupId>de.dlr.ts.v2x</groupId>
-		    <artifactId>commons.translators</artifactId>
-		    <version>1.2</version>
-		    <scope>system</scope>
-		    <systemPath>${commons.translators-systemPath}</systemPath>
-		</dependency>-->
 
     </dependencies>
 

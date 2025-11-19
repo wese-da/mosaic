@@ -15,6 +15,8 @@
 
 package org.eclipse.mosaic.app.ts.kosnet_applications.slots;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -28,18 +30,18 @@ import org.eclipse.mosaic.fed.application.app.api.os.RoadSideUnitOperatingSystem
 import org.eclipse.mosaic.interactions.communication.V2xMessageTransmission;
 import org.eclipse.mosaic.lib.enums.AdHocChannel;
 import org.eclipse.mosaic.lib.enums.SensorType;
-import org.eclipse.mosaic.lib.geo.CartesianPoint;
 import org.eclipse.mosaic.lib.geo.GeoCircle;
 import org.eclipse.mosaic.lib.geo.GeoPoint;
-import org.eclipse.mosaic.lib.geo.MutableCartesianPoint;
-import org.eclipse.mosaic.lib.geo.MutableGeoPoint;
 import org.eclipse.mosaic.lib.objects.kosnet.SlotManagementMessage;
 import org.eclipse.mosaic.lib.objects.kosnet.SmmContent;
 import org.eclipse.mosaic.lib.objects.v2x.MessageRouting;
+import org.eclipse.mosaic.lib.objects.v2x.V2xMessage;
 import org.eclipse.mosaic.lib.objects.v2x.etsi.Cam;
 import org.eclipse.mosaic.lib.objects.v2x.etsi.Denm;
 import org.eclipse.mosaic.lib.objects.v2x.etsi.DenmContent;
-import org.eclipse.mosaic.lib.objects.v2x.etsi.cam.VehicleAwarenessData;
+import org.eclipse.mosaic.lib.objects.v2x.etsi.Mcm;
+import org.eclipse.mosaic.lib.objects.v2x.etsi.McmContent;
+import org.eclipse.mosaic.lib.objects.v2x.etsi.mcm.VehicleManeuverContainer;
 import org.eclipse.mosaic.lib.util.scheduling.Event;
 import org.eclipse.mosaic.rti.TIME;
 
@@ -47,17 +49,20 @@ import org.eclipse.mosaic.rti.TIME;
 public class SlotRsuApplication extends AbstractApplication<RoadSideUnitOperatingSystem> implements CommunicationApplication {
 
 	private Queue<Cam> currentCams = new ConcurrentLinkedQueue<Cam>();
+	private List<Mcm> currentMcms = new ArrayList<Mcm>();
 	
 	@Override
 	public void processEvent(Event event) throws Exception {
 		
+		// send your own CAM
+		getOs().getAdHocModule().sendCam();
 		
-//		Denm denm = prepareDenm();
-//		getOs().getAdHocModule().sendV2xMessage(denm);
-//		getLog().infoSimTime(this, "Sent DENM.");
-//		
-//		getOs().getAdHocModule().sendCam();
-//		getOs().getEventManager().addEvent(getOs().getSimulationTime() + TIME.SECOND, this);
+		// process MCMs
+		//empty the current MCMs
+		this.currentMcms = new ArrayList<Mcm>();
+		
+		// prepare next simulation time step
+		getOs().getEventManager().addEvent(getOs().getSimulationTime() + TIME.SECOND, this);
 		
 	}
 
@@ -84,22 +89,24 @@ public class SlotRsuApplication extends AbstractApplication<RoadSideUnitOperatin
 	@Override
 	public void onMessageReceived(ReceivedV2xMessage receivedV2xMessage) {
 		
-		if (receivedV2xMessage.getMessage() instanceof SlotManagementMessage) {
+		V2xMessage message = receivedV2xMessage.getMessage();
+		
+		if (message instanceof SlotManagementMessage) {
 			SlotManagementMessage smm = (SlotManagementMessage) receivedV2xMessage.getMessage();
 			if (smm.isRequestMessage()) {
 				SlotManagementMessage ack = new SlotManagementMessage(getOperatingSystem().getAdHocModule().createMessageRouting().topoCast(smm.getSenderId(), 0),
 						new SmmContent(getOperatingSystem().getSimulationTime(), getOperatingSystem().getId(), false), 200);
 				getOperatingSystem().getAdHocModule().sendV2xMessage(ack);
+				getLog().infoSimTime(this, "Received slot request from vehicle {}. Sending ack", smm.getSenderId());
+			}
+		} else if (message instanceof Mcm) {
+			McmContent content = ((Mcm) message).getContent();
+			VehicleManeuverContainer vmc = content.getVehicleManeuverContainer();
+			// only process if there is more than one trajectory (i.e. an intent for lane change)
+			if (vmc.getMcmTrajectories().size() > 1) {
+				this.currentMcms.add((Mcm)message);
 			}
 		}
-		
-//		if (receivedV2xMessage.getMessage() instanceof Cam) {
-//			Cam message = (Cam) receivedV2xMessage.getMessage();
-//			currentCams.add(message);
-//			String vehId = message.getUnitID();
-//			GeoPoint position = message.getPosition();
-//			getLog().infoSimTime(this, "Received CAM: {}, pos={}", vehId, position);
-//		}
 		
 	}
 	

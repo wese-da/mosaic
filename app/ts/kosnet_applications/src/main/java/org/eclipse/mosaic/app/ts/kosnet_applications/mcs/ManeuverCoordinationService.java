@@ -68,6 +68,7 @@ public class ManeuverCoordinationService extends AbstractApplication<VehicleOper
 
 	private McmTrajectory currentTrajectory;
 	private McmTrajectory targetTrajectory;
+	private boolean laneChangeInitiated = false;
 	private boolean laneChangehasHappened = false;
 	private VehicleRole vehicleRole = VehicleRole.NONE;
 	
@@ -287,13 +288,13 @@ public class ManeuverCoordinationService extends AbstractApplication<VehicleOper
 				if (mcmMessage.getContent().getVehicleManeuverContainer().getMcmTrajectories().get(1).getMcmCategoryType() == McmCategoryType.COOPERATION_OFFER){
 					//if vehicle is already in cooperation -> decline cooperation, else set vehicleRole to in cooperation and proceed to check for Conflicts
 					if (vehicleRole.equals(VehicleRole.NONE)){
-						getLog().infoSimTime(this, "vehicle set to target");
+						getLog().infoSimTime(this, "vehicle role set to target");
 						vehicleRole = VehicleRole.TARGET;
 						Trajectory requestedTrajectory = mcmMessage.getContent().getVehicleManeuverContainer().getMcmTrajectories().get(1).getTrajectory();
 						List<IntermediatePointLane> conflicts = findConflictsBetweenTwoTrajectories(assembleCurrentTrajectory().getTrajectory(), requestedTrajectory);
 						//if there are conflicts -> slow down (maybe constant value, maybe value relative to current speed)
 						if (!conflicts.isEmpty()){
-							getOperatingSystem().slowDown(13,10);
+							getOperatingSystem().slowDown((float) this.getOperatingSystem().getVehicleData().getSpeed()-1, 10);
 						}
 
 						//to accept Trajectory -> send mcm Message with same Trajectories, but with McmCategoryType COOPERATION_ACCEPT (subject vehicle saves requested trajectories)
@@ -311,7 +312,7 @@ public class ManeuverCoordinationService extends AbstractApplication<VehicleOper
 						Mcm response = new Mcm(getOperatingSystem().getAdHocModule().createMessageRouting().topoBroadCast(), responseContent, 200);
 						getOperatingSystem().getAdHocModule().sendV2xMessage(response);
 
-					}else {
+					} else {
 						//send the decline of the cooperation -> send mcm Message with same trajectories but with category Type cooperation decline
 
 						List<McmTrajectory> messageTrajectories = mcmMessage.getContent().getVehicleManeuverContainer().getMcmTrajectories();
@@ -327,6 +328,7 @@ public class ManeuverCoordinationService extends AbstractApplication<VehicleOper
 						McmContent responseContent = new McmContent(getOperatingSystem().getSimulationTime(), vmcResponse, macResponse);
 						Mcm response = new Mcm(getOperatingSystem().getAdHocModule().createMessageRouting().topoBroadCast(), responseContent, 200);
 						getOperatingSystem().getAdHocModule().sendV2xMessage(response);
+						this.vehicleRole = VehicleRole.NONE;
 					}
 				}
 				//if vehicle has sent cooperation request -> waits for response
@@ -337,13 +339,14 @@ public class ManeuverCoordinationService extends AbstractApplication<VehicleOper
 						this.laneChangehasHappened = false;
 						this.vehicleRole = VehicleRole.NONE;
 					}
-					else if (mcmMessage.getRouting().getSource().getSourceName().equals(getSortedOtherVehicleInfo().getFirst().getKey())) //<-- hier error, wenn keine Elemente vorhanden sind
+					else if (mcmMessage.getRouting().getSource().getSourceName().equals(getSortedOtherVehicleInfo().getFirst().getKey())) { //<-- hier error, wenn keine Elemente vorhanden sind
 						if (trajectories.get(1).getTrajectory().equals(targetTrajectory.getTrajectory())){
 							//if vehicle has accepted cooperation -> change lane
 							if (trajectories.get(1).getMcmCategoryType() == McmCategoryType.COOPERATION_ACCEPTANCE){
 								getOperatingSystem().changeLane(1, 1000);
 								getLog().infoSimTime(this, "MCM lanechange happened");
 							}
+						}
 					}
 				}
 			}
@@ -379,38 +382,52 @@ public class ManeuverCoordinationService extends AbstractApplication<VehicleOper
 		// Request lane change for all connected vehicles driving on rightmost lane to the lane to the left
 		int laneIndex = getOperatingSystem().getNavigationModule().getRoadPosition().getLaneIndex();
 		//double lanePosition = getOperatingSystem().getRoadPosition().getLateralLanePosition();
-		double lanePosition = getOperatingSystem().getNavigationModule().getRoadPosition().getOffset(); //replace getLateralLanePosition with getOffset
+		double lanePosition = getOperatingSystem().getVehicleData().getDistanceDriven();//getOperatingSystem().getNavigationModule().getRoadPosition().getOffset(); //replace getLateralLanePosition with getOffset
+		
 		//System.out.println(lanePosition);
+		
+		if (laneIndex == 0) { // && !laneChangehasHappened && lanePosition > startLaneChangeArea && lanePosition < endLaneChangeArea) {
 
-		double startLaneChangeArea = Math.random() * (150 - 25) + 25;		//vielleicht als Klassenvariablen damit nicht bei jedem aufruf die Grenzen neu generiert werden
-		double endLaneChangeArea = Math.random() * (300 - 190) + 190;
-
-		if (laneIndex == 0 && !laneChangehasHappened && lanePosition > startLaneChangeArea && lanePosition < endLaneChangeArea) {
-			if (this.vehicleRole.equals(VehicleRole.NONE)){
-				getLog().infoSimTime(this, "vehicle set to subject");
-				this.vehicleRole = VehicleRole.SUBJECT;
-
-				this.laneChangehasHappened = true;
-				// TODO construct requested trajectory
-				Mcm mcm = constructReferenceTrajectory();
-
-				//creation of the additional target trajectorie
-				this.targetTrajectory = new McmTrajectory(1, new Trajectory(new ArrayList<>()), McmCategoryType.COOPERATION_OFFER, new CooperationCost(1.0f));
-				//copies the reference trajectory, but changes the lane indexes of the lane Points after the lane change (constructs reference trajectory)
-				double currentPos = getOperatingSystem().getNavigationModule().getRoadPosition().getLateralLanePosition();
-				for (IntermediatePoint ip : mcm.getContent().getVehicleManeuverContainer().getMcmTrajectories().getFirst().getTrajectory().getIntermediatePoints()){
-					if (ip instanceof IntermediatePointLane){
-						IntermediatePointLane ipLane = (IntermediatePointLane) ip;
-						if (ipLane.getLane().getLanePosition() > currentPos){
-							ipLane.getLane().setLaneIndex(1);
+			double startLaneChangeArea = Math.random() * (150 - 25) + 25;		//vielleicht als Klassenvariablen damit nicht bei jedem aufruf die Grenzen neu generiert werden
+//			double endLaneChangeArea = Math.random() * (300 - 190) + 190;
+			
+			if (!laneChangehasHappened && lanePosition > startLaneChangeArea) {// && lanePosition < endLaneChangeArea) {
+			
+				getLog().infoSimTime(this, "trying to init lane change at position {}", startLaneChangeArea);
+				if (this.vehicleRole.equals(VehicleRole.NONE)){
+					getLog().infoSimTime(this, "vehicle role set to subject");
+					this.vehicleRole = VehicleRole.SUBJECT;
+	
+					this.laneChangehasHappened = true;
+					// TODO construct requested trajectory
+					Mcm mcm = constructReferenceTrajectory();
+	
+					//creation of the additional target trajectorie
+					this.targetTrajectory = new McmTrajectory(1, new Trajectory(new ArrayList<>()), McmCategoryType.COOPERATION_OFFER, new CooperationCost(1.0f));
+					//copies the reference trajectory, but changes the lane indexes of the lane Points after the lane change (constructs reference trajectory)
+					double currentPos = getOperatingSystem().getNavigationModule().getRoadPosition().getLateralLanePosition();
+					for (IntermediatePoint ip : mcm.getContent().getVehicleManeuverContainer().getMcmTrajectories().getFirst().getTrajectory().getIntermediatePoints()){
+						if (ip instanceof IntermediatePointLane){
+							IntermediatePointLane ipLane = (IntermediatePointLane) ip;
+							if (ipLane.getLane().getLanePosition() > currentPos){
+								ipLane.getLane().setLaneIndex(1);
+							}
+							this.targetTrajectory.getTrajectory().getIntermediatePoints().add(ipLane);
 						}
-						this.targetTrajectory.getTrajectory().getIntermediatePoints().add(ipLane);
 					}
+					
+					getLog().infoSimTime(this, "generated trajectory with {} intermediate points", this.targetTrajectory.getTrajectory().getIntermediatePoints().size());
+	
+					mcm.getContent().getVehicleManeuverContainer().getMcmTrajectories().add(this.targetTrajectory);
+	
+					getOperatingSystem().getAdHocModule().sendV2xMessage(mcm);
+				} else {
+					getLog().infoSimTime(this, "vehicle involved in another lane change coordination as {}", this.vehicleRole);
 				}
-
-				mcm.getContent().getVehicleManeuverContainer().getMcmTrajectories().add(this.targetTrajectory);
-
-				getOperatingSystem().getAdHocModule().sendV2xMessage(mcm);
+			} else {
+				
+				this.getOperatingSystem().changeLane(1, 3600);
+				
 			}
 		}
 

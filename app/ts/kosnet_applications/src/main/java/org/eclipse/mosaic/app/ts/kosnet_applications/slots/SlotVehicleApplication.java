@@ -44,7 +44,7 @@ public class SlotVehicleApplication extends AbstractApplication<VehicleOperating
 	
 	@Override
 	public void onShutdown() {
-		
+		this.hasSlot = false;
 	}
 
 	@Override
@@ -71,13 +71,15 @@ public class SlotVehicleApplication extends AbstractApplication<VehicleOperating
 	private boolean useCellNetwork() {
 		return false;
 	}
-
+	
 	@Override
 	public void processEvent(Event arg0) throws Exception {
 		// send CAM
+		getLog().infoSimTime(this, "Sending CAM");
 		getOs().getAdHocModule().sendCam();
 		
 		if (!hasSlot) {
+			getLog().infoSimTime(this, "Sending SlotRequestMessage");
 			getOperatingSystem().getAdHocModule().sendV2xMessage(generateRequestMessage());
 		} else {
 			// change color scheme
@@ -87,7 +89,7 @@ public class SlotVehicleApplication extends AbstractApplication<VehicleOperating
 
 			// send DENM with slot
 			String extendedContainer = "slot";
-			GeoPolygon eventArea = new GeoPolygon(getOperatingSystem().getPosition()); //TODO ?
+			GeoPolygon eventArea = null;//new GeoPolygon(getOperatingSystem().getPosition()); //TODO ?
 			DenmContent content = new DenmContent(getOperatingSystem().getSimulationTime(), getOperatingSystem().getPosition(),
 					getOperatingSystem().getNavigationModule().getRoadPosition().getConnectionId(), SensorType.POSITION, 0,
 					(float) getOperatingSystem().getVehicleData().getSpeed(), getOperatingSystem().getVehicleData().getThrottle().floatValue(),
@@ -116,6 +118,7 @@ public class SlotVehicleApplication extends AbstractApplication<VehicleOperating
 		if (msg instanceof SlotManagementMessage) {
 			if (!((SlotManagementMessage) msg).isRequestMessage()) {
 				hasSlot = true;
+				getLog().infoSimTime(this, "Ack received. Slot initialized.");
 			}
 		} else if (msg instanceof Denm) {
 			getLog().infoSimTime(this, "Received DENM");
