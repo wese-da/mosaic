@@ -287,6 +287,7 @@ public class ManeuverCoordinationService extends AbstractApplication<VehicleOper
 			if (mcmMessage.getContent().getVehicleManeuverContainer().getMcmTrajectories().size() > 1){
 				if (mcmMessage.getContent().getVehicleManeuverContainer().getMcmTrajectories().get(1).getMcmCategoryType() == McmCategoryType.COOPERATION_OFFER){
 					//if vehicle is already in cooperation -> decline cooperation, else set vehicleRole to in cooperation and proceed to check for Conflicts
+				    // check distance between subject vehicle and target vehicle to decide whether cooperation is necessary
 					if (vehicleRole.equals(VehicleRole.NONE)){
 						getLog().infoSimTime(this, "vehicle role set to target");
 						vehicleRole = VehicleRole.TARGET;
