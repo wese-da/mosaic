@@ -295,7 +295,8 @@ public class ManeuverCoordinationService extends AbstractApplication<VehicleOper
 						List<IntermediatePointLane> conflicts = findConflictsBetweenTwoTrajectories(assembleCurrentTrajectory().getTrajectory(), requestedTrajectory);
 						//if there are conflicts -> slow down (maybe constant value, maybe value relative to current speed)
 						if (!conflicts.isEmpty()){
-							getOperatingSystem().slowDown((float) this.getOperatingSystem().getVehicleData().getSpeed()-1, 10);
+							getOperatingSystem().changeSpeedWithPleasantAcceleration(getOperatingSystem().getVehicleData().getSpeed() - 2);
+//							getOperatingSystem().slowDown((float) this.getOperatingSystem().getVehicleData().getSpeed()-1, 10);
 						}
 
 						//to accept Trajectory -> send mcm Message with same Trajectories, but with McmCategoryType COOPERATION_ACCEPT (subject vehicle saves requested trajectories)
@@ -339,6 +340,7 @@ public class ManeuverCoordinationService extends AbstractApplication<VehicleOper
 					if (this.otherVehicleInfo.isEmpty()){
 						this.laneChangehasHappened = false;
 						this.vehicleRole = VehicleRole.NONE;
+//						getOperatingSystem().changeSpeedWithPleasantAcceleration(getOperatingSystem().getVehicleParameters().getMaxSpeed());
 					}
 					else if (mcmMessage.getRouting().getSource().getSourceName().equals(getSortedOtherVehicleInfo().getFirst().getKey())) { //<-- hier error, wenn keine Elemente vorhanden sind
 						if (trajectories.get(1).getTrajectory().equals(targetTrajectory.getTrajectory())){
