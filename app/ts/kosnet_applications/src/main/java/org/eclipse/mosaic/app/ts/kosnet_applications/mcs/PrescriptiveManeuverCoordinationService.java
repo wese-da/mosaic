@@ -20,6 +20,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import org.eclipse.mosaic.fed.application.ambassador.simulation.communication.AdHocModuleConfiguration;
@@ -31,16 +32,29 @@ import org.eclipse.mosaic.fed.application.app.api.CommunicationApplication;
 import org.eclipse.mosaic.fed.application.app.api.os.RoadSideUnitOperatingSystem;
 import org.eclipse.mosaic.interactions.communication.V2xMessageTransmission;
 import org.eclipse.mosaic.lib.enums.AdHocChannel;
+import org.eclipse.mosaic.lib.geo.CartesianPoint;
+import org.eclipse.mosaic.lib.objects.road.IConnection;
 import org.eclipse.mosaic.lib.objects.v2x.V2xMessage;
 import org.eclipse.mosaic.lib.objects.v2x.etsi.Cam;
 import org.eclipse.mosaic.lib.objects.v2x.etsi.Mcm;
 import org.eclipse.mosaic.lib.objects.v2x.etsi.McmContent;
+import org.eclipse.mosaic.lib.objects.v2x.etsi.cam.VehicleAwarenessData;
+import org.eclipse.mosaic.lib.objects.v2x.etsi.mcm.CooperationCost;
+import org.eclipse.mosaic.lib.objects.v2x.etsi.mcm.IntermediatePoint;
+import org.eclipse.mosaic.lib.objects.v2x.etsi.mcm.IntermediatePointLane;
+import org.eclipse.mosaic.lib.objects.v2x.etsi.mcm.Lane;
 import org.eclipse.mosaic.lib.objects.v2x.etsi.mcm.Maneuver;
 import org.eclipse.mosaic.lib.objects.v2x.etsi.mcm.ManeuverAdviceContainer;
+import org.eclipse.mosaic.lib.objects.v2x.etsi.mcm.McmCategoryType;
 import org.eclipse.mosaic.lib.objects.v2x.etsi.mcm.McmTrajectory;
+import org.eclipse.mosaic.lib.objects.v2x.etsi.mcm.Reason;
+import org.eclipse.mosaic.lib.objects.v2x.etsi.mcm.TimeOfPos;
+import org.eclipse.mosaic.lib.objects.v2x.etsi.mcm.Trajectory;
 import org.eclipse.mosaic.lib.objects.v2x.etsi.mcm.VehicleManeuverContainer;
 import org.eclipse.mosaic.lib.util.scheduling.Event;
 import org.eclipse.mosaic.rti.TIME;
+import org.locationtech.jts.geom.Envelope;
+import org.locationtech.jts.index.strtree.STRtree;
 
 /**
  * 
@@ -68,9 +82,22 @@ public class PrescriptiveManeuverCoordinationService extends AbstractApplication
 		
 		getOperatingSystem().getAdHocModule().sendCam();
 		
-		// intent sharing
-		// calculate maneuvers for all vehicles that have cooperation needs
-		for (String vehId : receivedCams.keySet()) {
+		STRtree spatialIndex = updateSpatialIndex();
+		
+		for (Mcm mcm : receivedMcms.values()) {
+			
+			List<McmTrajectory> trajectories =  mcm.getContent().getVehicleManeuverContainer().getMcmTrajectories();
+			int index = 0;
+			if (trajectories.size() > 1) {
+				index = 1;
+			}
+			Trajectory ref = trajectories.get(index).getTrajectory();
+			
+			List<Mcm> candidates = spatialIndex.query(TrajectoryUtils.getTrajectoryBoundingBox(ref));
+			System.out.println();
+		}
+		
+		for (Entry<String, Cam> cams : receivedCams.entrySet()) {
 			// if maneuver coordination needed
 			List<McmTrajectory> mcmTrajectories = new ArrayList<McmTrajectory>();
 			VehicleManeuverContainer vmc = new VehicleManeuverContainer(getOperatingSystem().getPosition(), mcmTrajectories);
@@ -80,13 +107,57 @@ public class PrescriptiveManeuverCoordinationService extends AbstractApplication
 			Mcm mcm = new Mcm(getOperatingSystem().getAdHocModule().createMessageRouting().topoBroadCast(),
 					content, 200);
 			
-			getOperatingSystem().getAdHocModule().sendV2xMessage(mcm);	
+			getOperatingSystem().getAdHocModule().sendV2xMessage(mcm);
 		}
+
+		receivedMcms.clear();
 		
 		getOperatingSystem().getEventManager().addEvent(new Event(getOperatingSystem().getSimulationTime() + 200 * TIME.MILLI_SECOND, this));
 		
 	}
-
+	
+	private STRtree updateSpatialIndex() {
+		
+		STRtree spatialIndex = new STRtree();
+		// intent sharing
+		// calculate maneuvers for all vehicles that have cooperation needs
+		for (Mcm mcm : receivedMcms.values()) {
+			
+			// generate bounding box for trajectory
+			Envelope bounds = new Envelope();
+			
+			List<McmTrajectory> trajectories = mcm.getContent().getVehicleManeuverContainer().getMcmTrajectories();
+			
+			int index = 0;
+			if (trajectories.size() > 1) {
+				index = 1;
+			}
+			Trajectory subject = trajectories.get(index).getTrajectory();
+			
+			for (IntermediatePoint ip : subject.getIntermediatePoints()) {
+				
+				if (ip instanceof IntermediatePointLane) {
+					
+					IntermediatePointLane ipl = (IntermediatePointLane) ip;
+					Lane l = ipl.getLane();
+					
+					IConnection c = getOperatingSystem().getRoutingModule().getConnection(l.getLaneId());
+					CartesianPoint cp =  c.getStartNode().getPosition().toCartesian();
+					double x = cp.getX() + l.getLanePosition();
+					bounds.expandToInclude(x, cp.getY());
+					
+				}
+				
+			}
+			
+			spatialIndex.insert(bounds, mcm);
+			
+		}
+		
+		return spatialIndex;
+		
+	}
+	
 	@Override
 	public void onStartup() {
 		
@@ -104,7 +175,7 @@ public class PrescriptiveManeuverCoordinationService extends AbstractApplication
 		}
 		
 		// trigger processEvent
-		getOperatingSystem().getEventManager().addEvent(new Event(getOperatingSystem().getSimulationTime() + TIME.SECOND, this));
+		getOperatingSystem().getEventManager().addEvent(new Event(getOperatingSystem().getSimulationTime() + 200 * TIME.MILLI_SECOND, this));
 	}
 
 	@Override

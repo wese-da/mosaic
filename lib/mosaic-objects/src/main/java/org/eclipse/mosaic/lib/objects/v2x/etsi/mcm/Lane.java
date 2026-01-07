@@ -28,12 +28,14 @@ public class Lane implements ToDataOutput, Serializable {
 	 * 
 	 */
 	private static final long serialVersionUID = -3923398733977493373L;
+	private String laneId;
 	private double lanePosition;
 	private int laneCount;
 	// deviation from std
 	private int laneIndex;
 	
-	public Lane(double lanePosition, int laneCount, int laneIndex) {
+	public Lane(String id, double lanePosition, int laneCount, int laneIndex) {
+		this.laneId = id;
 		this.lanePosition = lanePosition;
 		
 		if (laneCount > 16 || laneCount < 1) {
@@ -44,14 +46,19 @@ public class Lane implements ToDataOutput, Serializable {
 		this.laneIndex = laneIndex;
 	}
 	
-	public Lane(double lanePosition, int laneCount) {
-		this(lanePosition, laneCount, 0);
+	public Lane(String id, double lanePosition, int laneCount) {
+		this(id, lanePosition, laneCount, 0);
 	}
 	
 	public Lane(DataInput in) throws IOException {
+		this.laneId = in.readUTF();
 		this.lanePosition = in.readDouble();
 		this.laneCount = in.readInt();
 		this.laneIndex = in.readInt();
+	}
+	
+	public String getLaneId() {
+		return this.laneId;
 	}
 	
 	public double getLanePosition() {
@@ -64,6 +71,7 @@ public class Lane implements ToDataOutput, Serializable {
 
 	@Override
 	public void toDataOutput(DataOutput dataOutput) throws IOException {
+		dataOutput.writeUTF(laneId);
 		dataOutput.writeDouble(lanePosition);
 		dataOutput.writeInt(laneCount);
 		dataOutput.writeInt(laneIndex);
