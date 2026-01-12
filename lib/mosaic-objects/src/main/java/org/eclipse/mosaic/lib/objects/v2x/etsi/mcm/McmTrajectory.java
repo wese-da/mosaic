@@ -38,12 +38,12 @@ public class McmTrajectory implements ToDataOutput, Serializable {
 	 */
 	private static final long serialVersionUID = -6506376438321460228L;
 	private int trajectoryId;
-	private Trajectory trajectory;
+	private FrenetTrajectory trajectory;
 	private McmCategoryType mcmCateogoryType;
 	private CooperationCost cooperationCost;
 	
 	public McmTrajectory(@Nonnull int trajectoryId,
-			@Nonnull Trajectory trajectory,
+			@Nonnull FrenetTrajectory trajectory,
 			@Nonnull McmCategoryType mcmCategoryType,
 			@Nonnull CooperationCost cooperationCost) {
 		this.trajectoryId = trajectoryId;
@@ -54,7 +54,7 @@ public class McmTrajectory implements ToDataOutput, Serializable {
 	
 	public McmTrajectory(DataInput in) throws IOException {
 		trajectoryId = in.readInt();
-		trajectory = new Trajectory(in);
+		trajectory = new FrenetTrajectory(in);
 		mcmCateogoryType = McmCategoryType.fromId(in.readByte());
 		cooperationCost = new CooperationCost(in);
 	}
@@ -63,7 +63,7 @@ public class McmTrajectory implements ToDataOutput, Serializable {
 		return trajectoryId;
 	}
 	
-	public Trajectory getTrajectory() {
+	public FrenetTrajectory getTrajectory() {
 		return trajectory;
 	}
 	

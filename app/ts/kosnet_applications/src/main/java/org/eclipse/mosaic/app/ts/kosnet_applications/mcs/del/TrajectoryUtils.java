@@ -1,4 +1,4 @@
-package org.eclipse.mosaic.app.ts.kosnet_applications.mcs;
+package org.eclipse.mosaic.app.ts.kosnet_applications.mcs.del;
 
 import java.util.ArrayList;
 import java.util.List;

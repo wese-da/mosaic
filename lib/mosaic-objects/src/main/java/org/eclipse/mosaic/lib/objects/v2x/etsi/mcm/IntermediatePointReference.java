@@ -72,4 +72,9 @@ public class IntermediatePointReference implements IntermediatePoint {
 		return this.timeOfPos;
 	}
 
+	@Override
+	public IntermediatePointType getType() {
+		return IntermediatePointType.REFERENCE;
+	}
+
 }

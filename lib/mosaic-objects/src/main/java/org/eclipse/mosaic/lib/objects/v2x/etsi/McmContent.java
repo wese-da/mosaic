@@ -38,8 +38,8 @@ public class McmContent implements ToDataOutput, Serializable {
 
 	public McmContent(
 			final long generationTime,
-			@Nonnull  VehicleManeuverContainer vehicleManueverContainer,
-			@Nonnull ManeuverAdviceContainer maneuverAdviceContainer) {
+			VehicleManeuverContainer vehicleManueverContainer,
+			ManeuverAdviceContainer maneuverAdviceContainer) {
 		this.generationTime = generationTime;
 		this.vehicleManeuverContainer = vehicleManueverContainer;
 		this.maneuverAdviceContainer = maneuverAdviceContainer;

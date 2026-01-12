@@ -13,24 +13,24 @@
  * Contact: mosaic@fokus.fraunhofer.de
  */
 
-package org.eclipse.mosaic.app.ts.kosnet_applications.mcs;
+package org.eclipse.mosaic.app.ts.kosnet_applications.mcs.del;
 
+import org.eclipse.mosaic.app.ts.kosnet_applications.mcs.AgreementSeekingVehicleApplication;
 import org.eclipse.mosaic.fed.application.ambassador.simulation.communication.CamBuilder;
 import org.eclipse.mosaic.fed.application.ambassador.simulation.communication.ReceivedAcknowledgement;
 import org.eclipse.mosaic.interactions.communication.V2xMessageTransmission;
 import org.eclipse.mosaic.lib.util.scheduling.Event;
 import org.eclipse.mosaic.rti.TIME;
 
-public class IntentSharingVehicleApplication extends ManeuverCoordinationService {
+public class StatusSharingVehicleApplication extends AgreementSeekingVehicleApplication {
 
-	public IntentSharingVehicleApplication(boolean useCells) {
+	public StatusSharingVehicleApplication(boolean useCells) {
 		super(useCells);
 	}
 
 	@Override
 	public void processEvent(Event event) throws Exception {
 		shareStatus();
-		getOperatingSystem().getAdHocModule().sendV2xMessage(constructReferenceTrajectory());
 		getOperatingSystem().getEventManager().addEvent(new Event(getOperatingSystem().getSimulationTime() + TIME.SECOND, this));
 	}
 

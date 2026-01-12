@@ -30,7 +30,6 @@
       "minGap": "2.5 m",
       "maxSpeed": "120.0 m/s",
       "vehicleClass": "Car",
-	  "laneChangeMode" : "OFF",
 	  "color" : "green",
       "accel": 2.6,
       "decel": 4.5,
@@ -48,7 +47,8 @@
         "decel": 0.0,
         "tau": 0.0
       },
-	  "applications" : ["org.eclipse.mosaic.app.ts.kosnet_applications.mcs.ManeuverCoordinationService(false)"]
+	  "applications" : ["org.eclipse.mosaic.app.ts.kosnet_applications.mcs.TrajectoryGenerationService",
+	  					"org.eclipse.mosaic.app.ts.kosnet_applications.mcs.AgreementSeekingVehicleApplication(false)"]
     }
   ],
   "vehicles": [
@@ -63,11 +63,11 @@
       "types": [
         {
           "name": "connected",
-          "weight": 0.4
+          "weight": 0.8
         },
 		{
 			"name" : "legacy",
-			"weight" : 0.6
+			"weight" : 0.2
 		}
       ],
       "departConnectionIndex": 0,

@@ -20,5 +20,7 @@ import java.io.Serializable;
 import org.eclipse.mosaic.lib.objects.ToDataOutput;
 
 public interface IntermediatePoint extends ToDataOutput, Serializable {
+	
+	public IntermediatePointType getType();
 
 }

@@ -33,9 +33,9 @@ public class CooperationCost implements ToDataOutput, Serializable {
 	 * 
 	 */
 	private static final long serialVersionUID = 8940682863073763127L;
-	private float value;
+	private double value;
 	
-	public CooperationCost(float value) {
+	public CooperationCost(double value) {
 		this.value = value;
 	}
 	
@@ -43,13 +43,13 @@ public class CooperationCost implements ToDataOutput, Serializable {
 		this.value = in.readFloat();
 	}
 	
-	public float getValue() {
-		return this.value;
+	public double getValue() {
+		return value;
 	}
 
 	@Override
 	public void toDataOutput(DataOutput dataOutput) throws IOException {
-		dataOutput.writeFloat(value);
+		dataOutput.writeDouble(value);
 	}
 	
 }

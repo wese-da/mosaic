@@ -18,9 +18,6 @@ package org.eclipse.mosaic.lib.objects.v2x.etsi.mcm;
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
-import java.io.Serializable;
-
-import org.eclipse.mosaic.lib.objects.ToDataOutput;
 
 public class IntermediatePointLane implements IntermediatePoint {
 
@@ -71,6 +68,11 @@ public class IntermediatePointLane implements IntermediatePoint {
 					&& this.getLane().getLaneCount() == ipl.getLane().getLaneCount();
 		}
 		return false;
+	}
+
+	@Override
+	public IntermediatePointType getType() {
+		return IntermediatePointType.LANE;
 	}
 	
 }
